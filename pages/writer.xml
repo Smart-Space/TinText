@@ -1,0 +1,8 @@
+<!--TinUIXml编辑-->
+<tinui>
+<line>
+    <line x='0' y='0' padx='0'>
+        <barbutton font='微软雅黑 10' content='self.datas["appbar"]'>buttons</barbutton>
+    </line>
+</line>
+</tinui>

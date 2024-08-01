@@ -1,0 +1,11 @@
+<!--TinUIXml编辑-->
+<tinui>
+<line>
+    <line x='0' y='0' padx='0'>
+        <menubutton text='文件' font='微软雅黑 10' widget='False' linew='0' cont='self.datas["menu_file"]'></menubutton>
+        <menubutton text='搜索' font='微软雅黑 10' widget='False' linew='0'></menubutton>
+        <menubutton text='工具' font='微软雅黑 10' widget='False' linew='0'></menubutton>
+        <menubutton text='关于' font='微软雅黑 10' widget='False' linew='0'></menubutton>
+    </line>
+</line>
+</tinui>
