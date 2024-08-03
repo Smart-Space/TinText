@@ -285,7 +285,6 @@ class TinText(ScrolledText):
                     for p in unit[2:-1]:
                         self.__render_paragraph(p)
                     self.__render_paragraph(unit[-1],True)
-                    #后期引入字形（粗体、下划线、斜体、删除线等）
                     self.tinml.addtin('<p>',text=unit[2:])
                 case '':
                     #默认文本，同<p>的第一个参数
@@ -326,6 +325,7 @@ class TinText(ScrolledText):
                         else:
                             color=unit[2]
                     self.__render_separate(color)
+                    self.tinml.addtin('<sp>',color=color)
                 case '<img>':
                     #<img>filename|[url]|[alt]
                     # TinText的图片渲染逻辑与旧版TinText-v3不同，
@@ -375,6 +375,26 @@ class TinText(ScrolledText):
                     #解释说明卡片，构造上与<p>相同
                     #提示符|#5969e0，文本背景(整行)#f9f9f9，文本颜色#7e7e7e
                     ...
+                case '<stop>':
+                    #<stop>time
+                    #暂停渲染，time为秒
+                    if unit_length>3:
+                        err=f'[{unit[0]}]<stop>标记参数超出限制:\n{"|".join(unit[1:])}\n<stop>时间'
+                        self.__render_err(err)
+                        break
+                    t=unit[2]
+                    try:
+                        t=float(t)
+                    except ValueError:
+                        err=f'[{unit[0]}]<stop>时间错误：\n{"|".join(unit[1:])}\n时间需要整数或小数'
+                        self.__render_err(err)
+                        break
+                    if t<=0:
+                        err=f'[{unit[0]}]<stop>时间错误：\n{"|".join(unit[1:])}\n时间需要大于0'
+                        self.__render_err(err)
+                        break
+                    #这类只在tin语言渲染中存在的操作，不参与tinml和html渲染
+                    sleep(t)
                 case '<tb>'|'<table>':
                     #table
                     ...

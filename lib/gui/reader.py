@@ -11,6 +11,7 @@ import os
 from TinUI import BasicTinUI, TinUIXml
 
 from lib.TinEngine import TinText
+from lib.TinEngine.tin2html import TinTranslator
 
 filename=None
 
@@ -40,6 +41,9 @@ def load_tinfile():
     root.title(f'TinReader - {title_filename}')
     tintext.thread_render(tincont)
 
+
+#以下为菜单功能
+#文件
 def openfile(e):#打开文件
     global filename
     tinfile=askopenfile(title='选择文件进行阅读',filetype=[('Tin文件','*.tin;*.tinx')])
@@ -59,6 +63,19 @@ def open_writer(e):#打开编辑器
 
 def quitreader(e):
     quit()
+
+#搜索
+
+#工具
+def outputhtml(e):#导出为HTML
+    #打开data/render/blubook.css读取内容
+    #转译成html
+    with open('./data/render/blubook.css','r',encoding='utf-8') as f:
+        style=f.read()
+    tintra=TinTranslator(tintext.tinml)
+    res=tintra.tohtml(_style=style)
+    with open('./data/render/blubook.html','w',encoding='utf-8') as f:
+        f.write(res.render())
 
 
 #以下为初始化
@@ -87,11 +104,14 @@ def __start():
         '-',
         ('退出\tctrl+q',quitreader)
     )
+    menu_tools=(
+        ('导出为html',outputhtml),
+    )
 
     tinui=BasicTinUI(root,height=30,bg='#fbfbfb')
     tinui.pack(fill='x')
     tinuix=TinUIXml(tinui)
-    tinuix.datas['menu_file']=menu_file
+    tinuix.datas.update({'menu_file':menu_file,'menu_tools':menu_tools})
     tinuix.loadxml(open('pages/reader.xml',encoding='utf-8').read())
     root.update()
 

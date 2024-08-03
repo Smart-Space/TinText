@@ -7,10 +7,12 @@
 from tkinter import Toplevel, StringVar
 from tkinter.scrolledtext import ScrolledText as Text
 from tkinter.messagebox import askyesno
+from tkinter.filedialog import asksaveasfilename
 import os
 
 from TinUI import BasicTinUI, TinUIXml
 
+import lib.gui.utils as utils
 from lib.TinEngine import TinText
 
 
@@ -79,6 +81,17 @@ def save_file(e):
     title_filename=os.path.basename(filename)
     root.title('TinWriter - '+title_filename)
     # editor.edit_modified(0)
+
+def saveas_file(e):
+    #另存为，保存文件到新位置
+    global SAVE,filename
+    newname=asksaveasfilename(title='另存为tin文件',filetypes=[('Tin文件','*.tin;*.tinx')])
+    if newname:
+        if newname.endswith('.tin'):
+            with open(newname,'w',encoding='utf-8') as f:
+                f.write(editor.get('1.0','end-1c'))
+        elif newname.endswith('.tinx'):
+            ...
 
 
 def editor_undo(e):
@@ -153,46 +166,60 @@ def highlight(all=False):
         pos=editor.search('[;\|-]', s, end, regexp=True)
         if not pos:
             break
+        s=None
         char=editor.get(pos)
         if char==';':
             line_context=editor.get(f"{pos} linestart", f"{pos} lineend")
             if line_context.lstrip()[0]!='<':
                 #开头不是标签，则跳过
-                pass
+                s=f"{pos}+1c"
             #如果已经是多行模式，则跳过
             elif linemode:
-                pass
-            else:
+                s=f"{pos}+1c"
+            else:#-1c是为了去除换行符的影响
                 line_last=f"{pos} lineend -1c"
                 if pos==editor.index(line_last):#判断是否为行末
                     editor.tag_add('separate', pos)
                     linemode=True
-        if char=='-':
+                    s=f"{pos}+2c"
+                else:
+                    s=f"{pos}+1c"
+        elif char=='-':
             if linemode:#开启了多行模式
                 if __get_index_char(pos)=='0':#开头
                     editor.tag_add('separate', pos)
-        if char=='|':
+                    s=f"{pos}+1l"
+                else:
+                    s=f"{pos}+1c"
+            else:
+                s=f"{pos}+1c"
+        elif char=='|':
             line_context=editor.get(f"{pos} linestart", f"{pos} lineend")
             if linemode:#开启了多行模式
                 #判断是不是在行末终止了多行模式
                 line_last=f"{pos} lineend -1c"
-                if pos==editor.index(line_last):
+                if pos==editor.index(line_last):#结尾
                     linemode=False
                     editor.tag_add('separate', pos)
+                    s=f"{pos}+2c"
                 elif __get_index_char(pos)=='0':#开头
                     editor.tag_add('separate', pos)
+                    s=f"{pos} lineend -1c"#跳到行末
             elif line_context.lstrip()[0]!='<':
                 #开头不是标签，则跳过
-                pass
+                s=f"{pos}+1l linestart"
             else:
                 #判断行末是不是;开启了多行模式
                 line_last=f"{pos} lineend -1c"
                 if editor.get(line_last)==';':
-                    pass
+                    s=f"{pos}+1l linestart"
                 else:
                     #若是单行模式，则正常高亮
                     editor.tag_add('separate', pos)
-        s=f"{pos}+1c"
+                    s=f"{pos}+1c"
+        else:
+            s=f"{pos}+1c"
+        # if not s: s=f"{pos}+1c"
     #标签
     s=f"{__get_index_line(start)}.0"
     while True:
@@ -233,6 +260,12 @@ def out_focus(e):
     # editor.tk.call(peert, 'configure', '-state', 'disabled')
     ...
 
+def peer_buttonrelease(e):
+    #接受peer的焦点事件
+    index=editor.tk.call(peert, 'index', 'insert')
+    editor.see(index)
+
+
 
 def key_call_back(e):
     #接受editor的键入事件
@@ -254,15 +287,15 @@ def __start():
     root.resizable(False, False)
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
-    center_x = int(screen_width / 2 - 1200 / 2)
+    center_x = int(screen_width / 2 - 1100 / 2)
     # center_y = int(screen_height / 2 - 750 / 2)
-    root.geometry('1200x750+%d+%d' % (center_x, 5))
+    root.geometry('1100x750+%d+%d' % (center_x, 5))
     root.update()
 
-    tinui=BasicTinUI(root,height=30,bg='#fbfbfb')
+    tinui=BasicTinUI(root,bg='#ffffff')
     tinui.place(x=0, y=0, width=750, height=40)
     tinuix=TinUIXml(tinui)
-    tinuix.datas['appbar']=(('','\uE74E',save_file),('','\uE8A1',reopenfunc),
+    tinuix.datas['appbar']=(('','\uE74E',save_file),('','\uE8A1',reopenfunc),('','\uE792',saveas_file),
     '',('','\uE7A7',editor_undo),('','\uE7A6',editor_redo))
     tinuix.loadxml(open('pages/writer.xml',encoding='utf-8').read())
     editor_buttons=tinuix.tags['buttons']
@@ -287,15 +320,21 @@ def __start():
     editor.tag_config('tag_name',foreground=color_dict['tag_name'][0],background=color_dict['tag_name'][1])
 
     peert='.!toplevel3.!peert'
+    # peert='.!toplevel.!peert'
     editor.peer_create(peert,borderwidth=0,relief='flat',font='Consolas 2',
         insertbackground='#000000', insertborderwidth=1, wrap='char',
         cursor='arrow')
     editor.tk.call('place', peert, '-x', 750, '-y', 0 ,'-width', 50, '-height', 400)
-    editor.tk.call('bind', peert, '<MouseWheel>', editor_synchronize)
-    #working bind like tkinter.py
+    # editor.tk.call('bind', peert, '<MouseWheel>', editor_synchronize)
+    utils.bind(editor,peert,'<MouseWheel>',editor_synchronize)
+    utils.bind(editor,peert,'<ButtonRelease-1>',peer_buttonrelease)
+
+    toolsui=BasicTinUI(root,bg='#ffffff')
+    toolsui.place(x=800, y=0, width=300, height=450)
+    toolsui.add_title((5,5),'Comming soon...')
 
     tintext=TinText(root,font='Consolas 13')
-    tintext.place(x=750, y=400, width=450, height=350)
+    tintext.place(x=750, y=400, width=350, height=350)
     tintext.config(state='disabled')
 
     root.protocol('WM_DELETE_WINDOW', closs_writer)

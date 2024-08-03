@@ -73,12 +73,3 @@ class TinTextSeparate(tk.Canvas):
         super().__init__(master=tintext,width=width,bg=color,relief='flat',
         highlightthickness=0,height=2)
 
-
-# class TinImg(ImageTk):
-#     #TinText内部控件，用于显示图片
-#     #working...
-#     def __init__(self,*arg,**kw) -> None:
-#         super().__init__(*arg,**kw)
-#         img=Image.open(path).resize((20,20),Image.ANTIALIAS)
-#         self.photo=ImageTk.PhotoImage(img)
-#         self.image=tintext.create_image(10,10,anchor='nw',image=self.photo)

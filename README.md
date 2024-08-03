@@ -10,6 +10,5 @@ Tin标记语言渲染的python.tkinter实现。
 
 TODO LIST：
 
-- [ ] peer同步微编辑框
-
+- [ ] 两个进程设计前端后端
 - [ ] TinWriter提示
