@@ -238,7 +238,7 @@ class TinText(ScrolledText):
         self.tag_config(tag_name)
         self.insert('end',text,('link',tag_name))
         self.tag_bind(tag_name,'<Button-1>',lambda e:webbrowser.open(url))
-        self.tag_bind(tag_name,'<Enter>',lambda e:self.balloon.show(e,url))
+        self.tag_bind(tag_name,'<Enter>',lambda e:self.balloon.show(e,description))
         self.tag_bind(tag_name,'<Leave>',lambda e:self.balloon.hide(e))
         self.insert('end','\n')
 
@@ -364,10 +364,9 @@ class TinText(ScrolledText):
                             text=unit[2]
                     if unit_length>=5:
                         #判断描述是否存在，如果不存在，则显示url
-                        if unit[4]=='':
-                            description=unit[3]
-                        else:
-                            description=unit[4]
+                        description=unit[4]
+                    if description=='':
+                        description=unit[3]
                     self.__render_link(text,unit[3],description)
                     self.tinml.addtin('<lnk>',text=text,url=unit[3],description=description)
                 case '<n>'|'<note>':

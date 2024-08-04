@@ -96,7 +96,7 @@ class TinTranslator():
         _body=div()
         doc.body.add(_body)
         for tag,kw in self.tinml:
-            if tag in ('<title>','<t>'):
+            if tag == '<title>':
                 #标题
                 text=kw['title']
                 level=int(kw['level'])
@@ -112,7 +112,7 @@ class TinTranslator():
                     _body.add(h5(text))
                 elif level==6:
                     _body.add(h6(text))
-            elif tag in ('<p>',):
+            elif tag == '<p>':
                 #段落
                 texts=kw['text']
                 _p=p('')
@@ -120,4 +120,12 @@ class TinTranslator():
                 for htmltext in htmltexts:
                     _p.add(htmltext)
                 _body.add(_p)
+            elif tag == '<lnk>':
+                #链接
+                text=kw['text']
+                url=kw['url']
+                _body.add(p(a(text,href=url)))
+            elif tag == '<sp>':
+                #分割线
+                _body.add(hr())
         return doc

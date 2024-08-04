@@ -6,6 +6,7 @@
 """
 from tkinter import Toplevel
 from tkinter.filedialog import askopenfile
+from tkinter.messagebox import showinfo
 import os
 
 from TinUI import BasicTinUI, TinUIXml
@@ -68,14 +69,20 @@ def quitreader(e):
 
 #工具
 def outputhtml(e):#导出为HTML
+    #鼠标转为等待样式
     #打开data/render/blubook.css读取内容
     #转译成html
+    #弹窗提示导出成功
+    #鼠标恢复样式
+    root.config(cursor='watch')
     with open('./data/render/blubook.css','r',encoding='utf-8') as f:
         style=f.read()
     tintra=TinTranslator(tintext.tinml)
     res=tintra.tohtml(_style=style)
     with open('./data/render/blubook.html','w',encoding='utf-8') as f:
         f.write(res.render())
+    root.config(cursor='arrow')
+    showinfo('导出成功','已将文件保存至data/render目录下。')
 
 
 #以下为初始化

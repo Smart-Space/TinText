@@ -20,148 +20,6 @@
   background: var(--side-bar-bg-color);
 }
 
-/****** #write basic ******/
-#write {
-  position: static;
-  width: 90%;
-  max-width: 700px;
-  line-height: 1.6;
-  transform: none;
-  height: auto;
-}
-
-/****** #write h1-h6 ******/
-#write h1,
-#write h2,
-#write h3,
-#write h4,
-#write h5,
-#write h6,
-#write p,
-#write pre {
-  width: auto;
-}
-
-#write h1::before,
-#write h2::before,
-#write h3::before,
-#write h4::before,
-#write h5::before,
-#write h6::before {
-  position: absolute;
-  right: calc(100% + 10px);
-  bottom: 0;
-  color: #b4b4b4;
-  font-size: 1rem;
-  font-weight: bold;
-  font-variant: 'small-caps';
-  border: 0;
-  border-radius: 0;
-  left: auto;
-  float: none;
-  padding: 0;
-}
-
-#write h1 {
-  font-size: 2.2rem;
-  font-style: normal;
-  font-weight: 800;
-  line-height: 2;
-  margin-top: 14px;
-  margin-bottom: 14px;
-}
-
-#write h1::before {
-  content: 'H1';
-  bottom: 1rem;
-}
-
-#write h2 {
-  font-size: 2rem;
-  font-weight: 800;
-  font-style: normal;
-  line-height: 2;
-  margin-top: 14px;
-  margin-bottom: 14px;
-}
-
-#write h2::before {
-  content: 'H2';
-  bottom: .85rem;
-}
-
-#write h3 {
-  font-size: 1.6rem;
-  font-weight: 800;
-  line-height: 2;
-  font-style: normal;
-  margin-top: 14px;
-  margin-bottom: 14px;
-}
-
-#write h3::before {
-  content: 'H3';
-  top: .44rem;
-  padding: 3px 0 3px 0;
-}
-
-#write h4 {
-  font-size: 1.4rem;
-  font-weight: 800;
-  line-height: 2;
-  font-style: normal;
-  margin-top: 14px;
-  margin-bottom: 14px;
-}
-
-#write h4::before {
-  content: 'H4';
-  top: .4rem;
-}
-
-#write h5,
-#write h6 {
-  font-size: 1.2rem;
-  font-weight: 800;
-  line-height: 2;
-  font-style: normal;
-  margin-top: 14px;
-  margin-bottom: 14px;
-}
-
-#write h5::before,
-#write h6::before {
-  top: .2rem;
-}
-
-#write h5::before {
-  content: 'H5';
-}
-
-#write h6::before {
-  content: 'H6';
-}
-
-h3.md-focus:before,
-h4.md-focus:before,
-h5.md-focus:before,
-h6.md-focus:before {
-  color: #ddd;
-  color: var(--heading-char-color);
-  border: 1px solid;
-  border-radius: 3px;
-  position: absolute;
-  left: -1.642857143rem;
-  top: .357142857rem;
-  float: left;
-  font-size: 9px;
-  padding-left: 2px;
-  padding-right: 2px;
-  vertical-align: bottom;
-  font-weight: 400;
-  line-height: 2;
-}
-
 /****** Global Style ******/
 body {
   margin: 0;
@@ -323,7 +181,7 @@ mark {
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-style: normal;
   font-weight: 800;
   line-height: 2;
@@ -332,7 +190,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 800;
   font-style: normal;
   line-height: 2;
@@ -341,7 +199,7 @@ h2 {
 }
 
 h3 {
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   font-weight: 800;
   line-height: 2;
   font-style: normal;
@@ -350,7 +208,7 @@ h3 {
 }
 
 h4 {
-  font-size: 1.2rem;
+  font-size: 1.6rem;
   font-weight: 800;
   line-height: 2;
   font-style: normal;
@@ -358,9 +216,17 @@ h4 {
   margin-bottom: 14px;
 }
 
-h5,
+h5{
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 2;
+  font-style: normal;
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+
 h6 {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 800;
   line-height: 2;
   font-style: normal;
@@ -1118,8 +984,6 @@ input {
 }
 
 div{
-position:absolute;
-left:200px;
-right:200px;
-margin:0 auto;
+width: 50%;
+margin: auto;
 }
