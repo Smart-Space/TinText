@@ -5,7 +5,7 @@
 设计上的TinText应用的主窗口、主进程
 """
 from tkinter import Toplevel
-from tkinter.filedialog import askopenfile
+from tkinter.filedialog import askopenfile, asksaveasfilename
 from tkinter.messagebox import showinfo
 import os
 
@@ -74,15 +74,18 @@ def outputhtml(e):#导出为HTML
     #转译成html
     #弹窗提示导出成功
     #鼠标恢复样式
+    newname=asksaveasfilename(title='导出为HTML',filetypes=[('html文件','*.html')])
+    if not newname:
+        return
     root.config(cursor='watch')
     with open('./data/render/blubook.css','r',encoding='utf-8') as f:
         style=f.read()
     tintra=TinTranslator(tintext.tinml)
     res=tintra.tohtml(_style=style)
-    with open('./data/render/blubook.html','w',encoding='utf-8') as f:
+    with open(newname,'w',encoding='utf-8') as f:
         f.write(res.render())
     root.config(cursor='arrow')
-    showinfo('导出成功','已将文件保存至data/render目录下。')
+    showinfo('导出成功','已在指定位置生成HTML文件')
 
 
 #以下为初始化

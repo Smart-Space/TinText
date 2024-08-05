@@ -11,8 +11,10 @@ import webbrowser
 from time import sleep
 import subprocess
 import os
+import io
 import re
 import threading
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 from tempfile import NamedTemporaryFile
 
 from tkinterweb.htmlwidgets import HtmlFrame
@@ -111,9 +113,10 @@ class TinText(ScrolledText):
         super().__init__(master, *args, **kw)
         self.config(borderwidth=0, relief="flat", insertbackground='#000000', insertborderwidth=1,
             wrap='char', spacing1=10)
-        self.tinml=TinML()
-        self.tinparser=TinParser()
-        self.balloon=Balloon()
+        self.tinml=TinML()#tin标记记录
+        self.tinparser=TinParser()#解析器
+        self.balloon=Balloon()#提示框
+        self.img_thread_pool=ThreadPoolExecutor(max_workers=6)#图片下载线程池
         self.__initialize()
 
     def __initialize(self):
@@ -161,16 +164,11 @@ class TinText(ScrolledText):
         self.tag_config('link',foreground='#006cb4',font=(self.font_family,self.font_size,'underline'))
         self.tag_bind('link','<Enter>',lambda e:self.config(cursor='hand2'))
         self.tag_bind('link','<Leave>',lambda e:self.config(cursor='arrow'))
+        #图片，存放图片（ImageTK.PhotoImage）对象的字典
+        self.images=dict()
 
-    def __load_imgs(self,imgs:list):
-        #多线程处理图片下载
-        #首先判断data/render/imgs有没有同名img
-        #若没有，根据网址下载
-        print('')
-        ...
-
-    def __render_err(self,msg):
-        self.insert('end',msg,'error')
+    def __render_err(self,msg,index='end'):
+        self.insert(index,msg,'error')
 
     def __render_title(self,title,level):
         #标题
@@ -224,7 +222,7 @@ class TinText(ScrolledText):
                     if newline:
                         self.insert('end','\n')
                     return
-            index=self.index('end')
+            index=self.index('end-1c')
             tag_name=f'"paragraph-{index}"'
             self.tag_config(tag_name,font=(self.font_family,self.font_size,*p_tags))
             self.insert('end',text[head_num:],('paragraph',tag_name))
@@ -248,22 +246,44 @@ class TinText(ScrolledText):
         width=self.winfo_width()
         self.window_create('end',window=TinTextSeparate(self,width,color),align='center')
         self.insert('end','\n')
+    
+    def __render_image(self,mark,img_file,need_download=True,url=''):
+        #图片
+        #发生错误则返回错误提示文本
+        if need_download:
+            try:
+                res=requests.get(url)
+            except Exception as err:
+                return str(err)
+            if img_file=='':#空名，直接获取二进制数据
+                img=Image.open(io.BytesIO(res.content))
+            else:#存在文件（包括后缀），保存到本地
+                with open('./data/imgs/'+img_file,'wb') as f:
+                    f.write(res.content)
+                img=Image.open('./data/imgs/'+img_file)
+        else:
+            img=Image.open('./data/imgs/'+img_file)
+        self.images[mark]=ImageTk.PhotoImage(img)
+        self.image_create(mark,image=self.images[mark])
 
     def render(self,tintext='<tin>TinText',new=True):
         #渲染tin标记
         self.RENDERING=True
-        # tinconts,imgs=self.tinparser.parse(tintext)
+        img_threadings=list()
         tinconts=self.tinparser.parse(tintext)
         # self.__load_imgs(imgs)
         self.config(state='normal')
         if new:#新的渲染任务
-            self.delete(1.0,'end')
-            self.tinml.clear()
+            self.delete(1.0,'end')#删除内容
+            self.images.clear()#清空图片列表
+            self.tinml.clear()#删除标记
             for i in self.tag_names():
-                #仅删除开头为“{”的样式名称
-                #在TinText渲染中，{tagname}为子样式
+                #仅删除开头为“"”的样式名称
+                #在TinText渲染中，"tagname"为子样式
                 if i[0]=='"':
                     self.tag_delete(i)
+            self.mark_unset()#删除所有标记
+            
         for unit in tinconts:
             #unit[0]为行数，unit[1]为标记标签，unit[2]必定存在
             #处理错误
@@ -326,17 +346,71 @@ class TinText(ScrolledText):
                             color=unit[2]
                     self.__render_separate(color)
                     self.tinml.addtin('<sp>',color=color)
-                case '<img>':
-                    #<img>filename|[url]|[alt]
+                case '<img>'|'<image>':
+                    #<img>filename|[url]|[size]
                     # TinText的图片渲染逻辑与旧版TinText-v3不同，
                     # 先在当前<img>标记渲染位置插入一个mark（通过self.index("end")），
                     # 再通过线程池下载图片，
                     # 下载完毕后在mark位置插入图片，删除mark，
-                    # 若下载图片失败，则返回错误信息（后期可能改为“破损”图片）
+                    # 若下载图片失败，则返回错误信息（后期可能改为“破损”图片），也删除mark
                     # 关于alt参数，有“x”在其中，判断是否为width%xheight%或widthxheight；
                     # 若没有“X”，则判断是否有“%”，按照等比缩放进行渲染。
-                    ...
-                    # self.tinml.addtin('<img>',filename=unit[2],url=url,alt=alt)
+                    img_file=unit[2]
+                    img_path_name,img_type=os.path.splitext(img_file)
+                    img_mark='imgmark'+str(id(unit))
+                    img_url=''
+                    img_config=''
+                    WEBIMAGE=False#是否为网络图片
+                    self.insert('end',' ')
+                    if unit_length>5:
+                        err=f'[{unit[0]}]<img>标记参数超出限制:\n{"|".join(unit[1:])}\n<img>文件名|[网址]|[尺寸]'
+                        self.__render_err(err)
+                        break
+                    #插入标记，给图片占位，继续渲染
+                    self.mark_set(img_mark,self.index('end-2c'))
+                    # img_mark=self.index('end-1c')
+                    if unit_length==3:
+                        #只存在文件名，不存在网址
+                        if img_path_name=='':
+                            #只存在文件名时，不能为空
+                            err=f'[{unit[0]}]<img>只含文件名时，文件名不能为空'
+                            self.__render_err(err)
+                            break
+                        elif img_type=='':
+                            err=f'[{unit[0]}]<img>只含文件名时，后缀名不能为空'
+                            self.__render_err(err)
+                            break
+                        if not os.path.isfile('./data/imgs/'+img_file):
+                            #图片文件不存在
+                            err=f'[{unit[0]}]<img>未知图片：{img_file}'
+                            self.__render_err(err)
+                            break
+                        img_threading=self.img_thread_pool.submit(self.__render_image,img_mark,img_file,WEBIMAGE)
+                        img_threadings.append(img_threading)
+                    if unit_length>=4:
+                        #url存在
+                        img_url=unit[3]
+                        if img_url=='':
+                            #网址不能为空
+                            err=f'[{unit[0]}]<img>网址不能为空'
+                            self.__render_err(err)
+                            break
+                        #先判断文件是否存在
+                        if os.path.isfile('./data/imgs/'+img_file):
+                            #文件存在，则用现有文件
+                            WEBIMAGE=False
+                        else:
+                            #文件不存在，则开启下载
+                            WEBIMAGE=True
+                        img_threading=self.img_thread_pool.submit(self.__render_image,img_mark,img_file,WEBIMAGE,img_url)
+                        img_threadings.append(img_threading)
+                    if unit_length>=5:
+                        #尺寸存在
+                        if unit[4]=='':
+                            err=f'[{unit[0]}]<img>尺寸不能为空：{img_file}'
+                            self.__render_err(err)
+                        img_threading=self.img_thread_pool.submit(self.__render_image,img_mark,img_file,True)
+                    self.tinml.addtin('<img>',filename=img_file,url=img_url,config=img_config)
                 case '<lnk>'|'<link>'|'<a>':
                     #<lnk>text|url|[description]
                     #text可为空，则显示url
@@ -402,6 +476,8 @@ class TinText(ScrolledText):
                     self.__render_err(err)
                     break
             self.update()
+        wait(img_threadings,return_when=ALL_COMPLETED)
+        img_threadings.clear()
         self.config(state='disabled')
         self.RENDERING=False
         print(self.tinml)
@@ -411,20 +487,3 @@ class TinText(ScrolledText):
         if not self.RENDERING:
             thread=threading.Thread(target=self.render,args=(tintext,))
             thread.start()
-
-
-testtin="""<tin>TinText
-<title>title|ascfdf|ss||sddd
-<p>xsa;
-|scssd
-|fdfb|
-
-|-ascvf
-
-dcd
-
-<p>acsc
-|ascca
-
-<lnk>ccc|www.markdown.com
-"""
