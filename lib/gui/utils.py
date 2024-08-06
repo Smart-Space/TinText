@@ -2,7 +2,7 @@
 /lib/gui/utils.py
 TinText界面功能中的杂项功能
 """
-from tkinter import CallWrapper
+from tkinter import CallWrapper, Canvas, Text
 
 
 #_register, bind重写，用于通过tcl命令创建的控件的事件绑定
@@ -47,3 +47,18 @@ def bind(widget,name,seq=None,func=None,add=None):
         return widget.tk.call('bind',name,seq)
     else:
         return widget.tk.splitlist(widget.tk.call('bind',name))
+
+
+#TinWriter的行数显示
+class LineViewer(Canvas):
+
+    def __init__(self,text:Text,*args,**kw):
+        """
+        初始化，创建行数显示控件
+        """
+        super().__init__(text.master,*args,**kw)
+        self.text=text
+    
+    def __load_line(self):
+        #显示行号
+        ...

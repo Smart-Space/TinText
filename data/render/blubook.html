@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>TinText</title>
+    <meta charset="utf-8">
     <style>@charset &quot;UTF-8&quot;;
 
 /*** Color setting ***/
@@ -1000,7 +1001,7 @@ margin: auto;
       <h4>四级标题</h4>
       <h5>五级标题</h5>
       <h6>六级标题</h6>
-      <p></p>
+      <p><br></p>
       <p>
         <s>
           <u><i>
@@ -1008,8 +1009,9 @@ margin: auto;
             </i></u>
         </s>直接使用&lt;p&gt;来表示，结尾会自带换行。
       </p>
+      <p>下方暂停一秒。</p>
       <p>这又是一个普通文本。</p>
-      <p></p>
+      <p><br></p>
       <p>
         <a href="tinui.smart-space.com.cn">TinText应用的UI界面库-TinUI</a>
       </p>
@@ -1021,14 +1023,14 @@ margin: auto;
             <a href="www.baidu.com">www.baidu.com</a>
           </b>
         </i>。</p>
-      <p></p>
+      <p><br></p>
       <p>使用&lt;img&gt;标签载入网络图片，若本地存在同名图片，优先使用本地。
-        <b>注意，如果文件名中只有后缀名，即图片类型，则优先使用链接。</b>
+        <b>注意，如果文件名为空，则直接使用链接。</b><i>&lt;img&gt;本身不换行。</i>
       </p>
-      <p></p>
+      <img alt="" height="200" src="https://smart-space.com.cn/img/TinLogo.png" width="100%">
+      <p><br></p>
       <p>使用&lt;sp&gt;标签生成分割线↓</p>
       <hr>
-      <p>下方暂停一秒。</p>
       <h1>结尾（&lt;title&gt;可用&lt;t&gt;替代，其它同义标记详见tin标记语言说明）</h1>
     </div>
   </body>

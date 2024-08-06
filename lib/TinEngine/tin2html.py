@@ -42,7 +42,7 @@ class TinTranslator():
         res=[]
         for text in texts:
             if text=='':
-                continue
+                res.append(br())
             elif text[0]==' ':
                 res.append(text[1:])
             elif text[0] not in self.tinPmark:
@@ -91,6 +91,7 @@ class TinTranslator():
     def tohtml(self,_title='TinText',_style=''):
         #tin->html
         doc=dominate.document(title=_title)
+        doc.head.add(meta(charset='utf-8'))
         if _style!='':
             doc.head.add(style(_style))
         _body=div()
@@ -128,4 +129,16 @@ class TinTranslator():
             elif tag == '<sp>':
                 #分割线
                 _body.add(hr())
+            elif tag == '<img>':
+                #图片
+                url=kw['url']
+                size=kw['size']
+                if url=='':
+                    #目前暂不支持没有网络来源的图片
+                    continue
+                if size:
+                    width,height=size
+                    _body.add(img(src=url,alt='',width=width,height=height))
+                else:
+                    _body.add(img(src=url,alt=''))
         return doc

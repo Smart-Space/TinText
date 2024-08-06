@@ -116,7 +116,7 @@ class TinText(ScrolledText):
         self.tinml=TinML()#tin标记记录
         self.tinparser=TinParser()#解析器
         self.balloon=Balloon()#提示框
-        self.img_thread_pool=ThreadPoolExecutor(max_workers=6)#图片下载线程池
+        self.img_thread_pool=ThreadPoolExecutor(max_workers=10)#图片下载线程池
         self.__initialize()
 
     def __initialize(self):
@@ -247,13 +247,14 @@ class TinText(ScrolledText):
         self.window_create('end',window=TinTextSeparate(self,width,color),align='center')
         self.insert('end','\n')
     
-    def __render_image(self,mark,img_file,need_download=True,url=''):
+    def __render_image(self,mark,img_file,need_download=True,url='',img_size=None):
         #图片
         #发生错误则返回错误提示文本
         if need_download:
             try:
                 res=requests.get(url)
             except Exception as err:
+                # print(err)
                 return str(err)
             if img_file=='':#空名，直接获取二进制数据
                 img=Image.open(io.BytesIO(res.content))
@@ -263,6 +264,26 @@ class TinText(ScrolledText):
                 img=Image.open('./data/imgs/'+img_file)
         else:
             img=Image.open('./data/imgs/'+img_file)
+        if img_size:
+            #缩放图片
+            try:
+                #不能是小数
+                img_width,img_height=img_size
+                width=self.winfo_width()
+                height=self.winfo_height()
+                if img_width.endswith('%'):
+                    width=int(width*float(img_width[:-1])/100)
+                else:
+                    width=int(img_width)
+                if img_height.endswith('%'):
+                    height=int(height*float(img_height[:-1])/100)
+                else:
+                    height=int(img_height)
+            except ValueError as e:
+                #传值错误，忽略，没有人会蠢到给尺寸传非数字
+                # print(e)
+                pass
+            img=img.resize((width,height))
         self.images[mark]=ImageTk.PhotoImage(img)
         self.image_create(mark,image=self.images[mark])
 
@@ -347,19 +368,19 @@ class TinText(ScrolledText):
                     self.__render_separate(color)
                     self.tinml.addtin('<sp>',color=color)
                 case '<img>'|'<image>':
-                    #<img>filename|[url]|[size]
+                    #<img>filename|[url]|[size(width x height)]
                     # TinText的图片渲染逻辑与旧版TinText-v3不同，
-                    # 先在当前<img>标记渲染位置插入一个mark（通过self.index("end")），
+                    # 记录当前位置，传递给渲染函数，
                     # 再通过线程池下载图片，
-                    # 下载完毕后在mark位置插入图片，删除mark，
+                    # 下载完毕后在指定位置插入图片，
                     # 若下载图片失败，则返回错误信息（后期可能改为“破损”图片），也删除mark
-                    # 关于alt参数，有“x”在其中，判断是否为width%xheight%或widthxheight；
+                    # 关于size参数，有“x”在其中，判断是否为width%xheight%或widthxheight；
                     # 若没有“X”，则判断是否有“%”，按照等比缩放进行渲染。
                     img_file=unit[2]
                     img_path_name,img_type=os.path.splitext(img_file)
                     img_mark='imgmark'+str(id(unit))
                     img_url=''
-                    img_config=''
+                    img_size=None
                     WEBIMAGE=False#是否为网络图片
                     self.insert('end',' ')
                     if unit_length>5:
@@ -385,8 +406,6 @@ class TinText(ScrolledText):
                             err=f'[{unit[0]}]<img>未知图片：{img_file}'
                             self.__render_err(err)
                             break
-                        img_threading=self.img_thread_pool.submit(self.__render_image,img_mark,img_file,WEBIMAGE)
-                        img_threadings.append(img_threading)
                     if unit_length>=4:
                         #url存在
                         img_url=unit[3]
@@ -402,15 +421,32 @@ class TinText(ScrolledText):
                         else:
                             #文件不存在，则开启下载
                             WEBIMAGE=True
-                        img_threading=self.img_thread_pool.submit(self.__render_image,img_mark,img_file,WEBIMAGE,img_url)
-                        img_threadings.append(img_threading)
                     if unit_length>=5:
                         #尺寸存在
-                        if unit[4]=='':
-                            err=f'[{unit[0]}]<img>尺寸不能为空：{img_file}'
+                        img_size=unit[4]
+                        if img_size=='':
+                            err=f'[{unit[0]}]<img>尺寸不能为空：{img_size}'
                             self.__render_err(err)
-                        img_threading=self.img_thread_pool.submit(self.__render_image,img_mark,img_file,True)
-                    self.tinml.addtin('<img>',filename=img_file,url=img_url,config=img_config)
+                            return
+                        x_num_check=img_size.count('x')#x的数量
+                        if x_num_check!=1:
+                            err=f'[{unit[0]}]<img>尺寸格式错误：{img_size}\n<img>的尺寸格式应为：width(%) x height(%)'
+                            self.__render_err(err)
+                            return
+                        img_size=img_size.split('x')
+                        img_size[0]=img_size[0].strip()
+                        img_size[1]=img_size[1].strip()
+                        if 1<=img_size[0].count('%')!=1 and not img_size[0].endswith('%'):
+                            err=f'[{unit[0]}]<img>尺寸格式错误：{img_size}\n<img>的宽度格式应为：width(%)或width'
+                            self.__render_err(err)
+                            return
+                        elif 1<=img_size[1].count('%')!=1 and not img_size[1].endswith('%'):
+                            err=f'[{unit[0]}]<img>尺寸格式错误：{img_size}\n<img>的高度格式应为：height(%)或height'
+                            self.__render_err(err)
+                            return
+                    img_threading=self.img_thread_pool.submit(self.__render_image,img_mark,img_file,WEBIMAGE,img_url,img_size)
+                    img_threadings.append(img_threading)
+                    self.tinml.addtin('<img>',filename=img_file,url=img_url,size=img_size)
                 case '<lnk>'|'<link>'|'<a>':
                     #<lnk>text|url|[description]
                     #text可为空，则显示url

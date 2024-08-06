@@ -307,8 +307,8 @@ def __start():
     # editor.bind('<<Undo>>', editor_undo) #避免重复操作
     # editor.bind('<<Redo>>', editor_redo)
     editor.bind('<MouseWheel>', peer_synchronize)
-    editor.bind('<FocusIn>', on_focus)
-    editor.bind('<FocusOut>', out_focus)
+    # editor.bind('<FocusIn>', on_focus)
+    # editor.bind('<FocusOut>', out_focus)
     # editor.bind('<KeyRelease>',on_text_change)
     # editor.bind('<ButtonRelease-1>',button_call_back)
     editor.bind('<<Modified>>', on_text_change)
