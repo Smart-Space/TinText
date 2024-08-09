@@ -2,7 +2,10 @@
 /lib/gui/utils.py
 TinText界面功能中的杂项功能
 """
-from tkinter import CallWrapper, Canvas, Text
+from tkinter import CallWrapper, Text, Toplevel
+from tkinter.scrolledtext import ScrolledText
+
+from TinUI import BasicTinUI, TinUIXml
 
 
 #_register, bind重写，用于通过tcl命令创建的控件的事件绑定
@@ -50,15 +53,130 @@ def bind(widget,name,seq=None,func=None,add=None):
 
 
 #TinWriter的行数显示
-class LineViewer(Canvas):
+class LineViewer(BasicTinUI):
+    index=None
 
-    def __init__(self,text:Text,*args,**kw):
+    def __init__(self,master,text:Text,*args,**kw):
         """
         初始化，创建行数显示控件
         """
-        super().__init__(text.master,*args,**kw)
+        super().__init__(master,*args,**kw)
         self.text=text
+        self.text.bind('<KeyRelease>',self.load_line)
+        self.text.bind('<ButtonRelease-1>',self.load_line)
+        self.line=self.add_paragraph((1,10),text='Ln: 1\tCol: 1',font='Consolas 10',anchor='w')
+        # self.entry=self.add_entry((60,10),width=200,font='Consolas 10',anchor='w')[0]
+        # self.add_button2((260,10),text='跳转行号',command=self.jump_line,anchor='w')
     
-    def __load_line(self):
+    def load_line(self,e):
         #显示行号
-        ...
+        index=self.text.index('insert').split('.')
+        if index==self.index:
+            return
+        line=int(index[0])
+        column=int(index[1])+1
+        self.itemconfig(self.line,text=f'Ln: {line}\tCol: {column}')
+        self.index=index
+    
+
+class TextFinder(Toplevel):
+
+    index='1.0'#当前搜索位置
+
+    def __init__(self,title='search',text=None,*args,**kw):
+        """
+        初始化，创建文本查找控件
+        """
+        super().__init__(*args,**kw)
+        self.title(title)
+        self.geometry("375x80")
+        self.withdraw()
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.close)
+
+        self.text=text
+        self.text.tag_config("found", background="yellow")
+
+        self.tinui=BasicTinUI(self)
+        self.tinui.pack(expand=True,fill='both')
+
+        with open('./pages/_finder.xml','r',encoding='utf-8') as f:
+            xml=f.read()
+        self.tinuixml=TinUIXml(self.tinui)
+        self.tinuixml.funcs['go_to_search']=self.go_to_search
+        self.tinuixml.loadxml(xml)
+        self.entry_search=self.tinuixml.tags['entry_search'][0]
+
+    def go_to_search(self,e):
+        """
+        跳转到查找文本
+        """
+        self.text.tag_remove('found','1.0','end')
+        text=self.entry_search.get()
+        if text=='':
+            return
+        index=self.text.search(text,self.index,stopindex='end')
+        if index:
+            self.index=index+f'+{len(text)}c'
+            self.text.tag_add('found',index,f'{index}+{len(text)}c')
+            self.text.mark_set('insert',index)
+            self.text.see(index)
+        else:
+            if self.index=='1.0':
+                #无匹配，退出搜索
+                self.text.tag_remove('found','1.0','end')
+                return
+            self.index='1.0'
+            self.go_to_search(None)
+    
+    def close(self):
+        """
+        关闭窗口
+        """
+        self.index=None
+        self.text.tag_remove('found','1.0','end')
+        self.withdraw()
+    
+    def show(self):
+        """
+        显示窗口
+        """
+        self.deiconify()
+        self.entry_search.focus_set()
+
+
+class AboutWindow(Toplevel):
+    #TinText的关于窗口
+    def __init__(self):
+        """
+        初始化，创建关于窗口
+        """
+        super().__init__()
+        self.title('关于TinText应用组')
+        self.withdraw()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        center_x = int(screen_width / 2 - 500 / 2)
+        center_y = int(screen_height / 2 - 500 / 2)
+        self.geometry(f"500x500+{center_x}+{center_y}")
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.close)
+        self.tinui=BasicTinUI(self)
+        self.tinui.pack(expand=True,fill='both')
+        self.tinuixml=TinUIXml(self.tinui)
+        with open('./pages/about.xml','r',encoding='utf-8') as f:
+            xml=f.read()
+        self.tinuixml.loadxml(xml)
+    
+    def close(self):
+        """
+        关闭窗口
+        """
+        self.withdraw()
+    
+    def show(self):
+        """
+        显示窗口
+        """
+        self.deiconify()
+    

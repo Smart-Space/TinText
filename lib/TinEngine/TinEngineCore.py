@@ -20,10 +20,11 @@ from tempfile import NamedTemporaryFile
 from tkinterweb.htmlwidgets import HtmlFrame
 from PIL import Image,ImageTk# require
 import requests# tkinterweb require
+from TinUI import BasicTinUI
 
 from .tin2html import TinML
 from .error import NoLinesMode, TagNoMatch, NoLinesMark, AlreadyStartLine
-from .controls import Balloon, TinTextSeparate
+from .controls import Balloon, TinTextSeparate, TinTextNote
 
 
 class TinParser():
@@ -120,6 +121,8 @@ class TinText(ScrolledText):
         self.__initialize()
 
     def __initialize(self):
+        #内部控件
+        self.widgets=list()
         #自身样式
         #鼠标为箭头
         self.config(cursor='arrow')
@@ -166,7 +169,7 @@ class TinText(ScrolledText):
         self.tag_bind('link','<Leave>',lambda e:self.config(cursor='arrow'))
         #图片，存放图片（ImageTK.PhotoImage）对象的字典
         self.images=dict()
-
+        
     def __render_err(self,msg,index='end'):
         self.insert(index,msg,'error')
 
@@ -244,7 +247,9 @@ class TinText(ScrolledText):
         #分割线
         self.update()
         width=self.winfo_width()
-        self.window_create('end',window=TinTextSeparate(self,width,color),align='center')
+        separator=TinTextSeparate(self,width,color)
+        self.widgets.append(separator)
+        self.window_create('end',window=separator,align='center')
         self.insert('end','\n')
     
     def __render_image(self,mark,img_file,need_download=True,url='',img_size=None):
@@ -286,6 +291,15 @@ class TinText(ScrolledText):
             img=img.resize((width,height))
         self.images[mark]=ImageTk.PhotoImage(img)
         self.image_create(mark,image=self.images[mark])
+    
+    def __render_note(self,notes):
+        #引用说明
+        self.update()
+        width=self.winfo_width()
+        note=TinTextNote(self,width,notes,self.cget('font'),'#5969e0','#7e7e7e',self.cget('background'),'#f9f9f9')
+        self.widgets.append(note)
+        self.window_create('end',window=note,align='center')
+        self.insert('end','\n')
 
     def render(self,tintext='<tin>TinText',new=True):
         #渲染tin标记
@@ -298,13 +312,15 @@ class TinText(ScrolledText):
             self.delete(1.0,'end')#删除内容
             self.images.clear()#清空图片列表
             self.tinml.clear()#删除标记
+            for i in self.widgets:
+                i.destroy()
+            self.widgets.clear()#删除内部控件
             for i in self.tag_names():
                 #仅删除开头为“"”的样式名称
                 #在TinText渲染中，"tagname"为子样式
                 if i[0]=='"':
                     self.tag_delete(i)
             self.mark_unset()#删除所有标记
-            
         for unit in tinconts:
             #unit[0]为行数，unit[1]为标记标签，unit[2]必定存在
             #处理错误
@@ -483,7 +499,8 @@ class TinText(ScrolledText):
                     #<note>note1|[note2]|...
                     #解释说明卡片，构造上与<p>相同
                     #提示符|#5969e0，文本背景(整行)#f9f9f9，文本颜色#7e7e7e
-                    ...
+                    self.__render_note(unit[2:])
+                    self.tinml.addtin('<note>',note=unit[2:])
                 case '<stop>':
                     #<stop>time
                     #暂停渲染，time为秒

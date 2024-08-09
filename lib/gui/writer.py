@@ -85,13 +85,10 @@ def save_file(e):
 def saveas_file(e):
     #另存为，保存文件到新位置
     global SAVE,filename
-    newname=asksaveasfilename(title='另存为tin文件',filetypes=[('Tin文件','*.tin;*.tinx')])
+    newname=asksaveasfilename(title='另存为tin文件',filetypes=[('Tin文件','*.tin')])
     if newname:
-        if newname.endswith('.tin'):
-            with open(newname,'w',encoding='utf-8') as f:
-                f.write(editor.get('1.0','end-1c'))
-        elif newname.endswith('.tinx'):
-            ...
+        with open(newname+'.tin','w',encoding='utf-8') as f:
+            f.write(editor.get('1.0','end-1c'))
 
 
 def editor_undo(e):
@@ -124,6 +121,19 @@ def editor_synchronize(e):
     #缩略图和编辑框同步
     index=editor.tk.call(peert, 'index', '@0,200')
     editor.yview('-pickplace', index)
+
+
+# def editor_search(e):
+#     #搜索
+#     pass
+# def editor_replace(e):
+#     #替换
+#     pass
+
+def open_textfinder(e):
+    #打开文本查找器
+    #working 后期TextFinder增加替换功能
+    textfinder.show()
 
 
 def on_text_change(e):
@@ -205,6 +215,9 @@ def highlight(all=False):
                 elif __get_index_char(pos)=='0':#开头
                     editor.tag_add('separate', pos)
                     s=f"{pos} lineend -1c"#跳到行末
+                else:
+                    #防止没有结尾匹配出错
+                    s=f"{pos}+1c"
             elif line_context.lstrip()[0]!='<':
                 #开头不是标签，则跳过
                 s=f"{pos}+1l linestart"
@@ -243,6 +256,9 @@ def highlight(all=False):
         pos=editor.search('[ ]{0,}(\|-).*', s, end, regexp=True)
         if not pos:
             break
+        if __get_index_char(pos)!='0':
+            s=f"{pos}+1c"
+            continue
         pos=f"{__get_index_line(pos)}.0"
         editor.tag_add('comment', pos, f"{pos}+1l-1c")
         s=f"{pos}+1l"
@@ -277,7 +293,7 @@ def button_call_back(e):
 
 def __start():
     #加载窗口
-    global root, editor, tintext, peert, already
+    global root, editor, tintext, peert, already, textfinder
 
     already=True
     
@@ -295,15 +311,18 @@ def __start():
     tinui=BasicTinUI(root,bg='#ffffff')
     tinui.place(x=0, y=0, width=750, height=40)
     tinuix=TinUIXml(tinui)
-    tinuix.datas['appbar']=(('','\uE74E',save_file),('','\uE8A1',reopenfunc),('','\uE792',saveas_file),
-    '',('','\uE7A7',editor_undo),('','\uE7A6',editor_redo))
+    tinuix.datas['appbar']=(
+        ('','\uE74E',save_file),('渲染','\uE8A1',reopenfunc),('另存为','\uE792',saveas_file),
+        '',('搜索','\uE721',open_textfinder),('替换','\uE8EE',None),
+        '',('','\uE7A7',editor_undo),('','\uE7A6',editor_redo),
+    )
     tinuix.loadxml(open('pages/writer.xml',encoding='utf-8').read())
     editor_buttons=tinuix.tags['buttons']
 
     editor=Text(root, borderwidth=0, relief='flat', font='Consolas 13',
         insertbackground='#000000', insertborderwidth=1, wrap='char',
         undo=True)
-    editor.place(x=0, y=40, width=750, height=710)
+    editor.place(x=0, y=40, width=750, height=690)
     # editor.bind('<<Undo>>', editor_undo) #避免重复操作
     # editor.bind('<<Redo>>', editor_redo)
     editor.bind('<MouseWheel>', peer_synchronize)
@@ -319,7 +338,7 @@ def __start():
     editor.tag_config('tag',foreground=color_dict['tag'][0],background=color_dict['tag'][1])
     editor.tag_config('tag_name',foreground=color_dict['tag_name'][0],background=color_dict['tag_name'][1])
 
-    peert='.!toplevel3.!peert'
+    peert=root._w+'.!peert'
     # peert='.!toplevel.!peert'
     editor.peer_create(peert,borderwidth=0,relief='flat',font='Consolas 2',
         insertbackground='#000000', insertborderwidth=1, wrap='char',
@@ -328,6 +347,9 @@ def __start():
     # editor.tk.call('bind', peert, '<MouseWheel>', editor_synchronize)
     utils.bind(editor,peert,'<MouseWheel>',editor_synchronize)
     utils.bind(editor,peert,'<ButtonRelease-1>',peer_buttonrelease)
+
+    lineviewer=utils.LineViewer(root,editor)
+    lineviewer.place(x=0, y=730, width=750, height=20)
 
     toolsui=BasicTinUI(root,bg='#ffffff')
     toolsui.place(x=800, y=0, width=300, height=450)
@@ -340,9 +362,12 @@ def __start():
     root.protocol('WM_DELETE_WINDOW', closs_writer)
     root.bind('<Control-s>', save_file)
     root.bind('<Control-r>',reopenfunc)
+    root.bind('<Control-f>',open_textfinder)
 
     load_tinfile()
     title_filename=os.path.basename(filename)
     root.title('TinWriter - '+title_filename)
+
+    textfinder=utils.TextFinder('TinWriter搜索',editor)
 
     root.focus_set()

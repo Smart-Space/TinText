@@ -1,0 +1,35 @@
+<!--TinUIXml编辑-->
+<tinui>
+<line>
+    <line>
+        <title text='TinText应用组'></title>
+    </line>
+    <line>
+        <paragraph text=''></paragraph>
+    </line>
+    <line>
+        <paragraph text='TinText是新一版的Tin标记语言实现，基于python.tkinter。' width='495'></paragraph>
+    </line>
+    <line>
+        <paragraph text=''></paragraph>
+    </line>
+    <line>
+        <paragraph text='TinText应用组包括TinReader、TinWriter。' width='495'></paragraph>
+    </line>
+    <line>
+        <paragraph text=''></paragraph>
+    </line>
+    <line>
+        <paragraph text='TinText由Smart-Space发布并维护，用以替代2020-2023的旧版Tin标记语言实现——TinReader（TinGourp），同时规范、优化、拓展新的TinML标准和具体实现，赋予TinML更实用的能力。' width='495'></paragraph>
+    </line>
+    <line>
+        <paragraph text=''></paragraph>
+    </line>
+    <line>
+        <paragraph text='Copyright&#x0D;2021-2023&#x0009;TinGroup Development&#x0D;2024-present&#x0009;Smart-Space' width='495'></paragraph>
+    </line>
+    <line>
+        <link text='TinText [GitHub]' url='https://github.com/smart-space/tintext'></link>
+    </line>
+</line>
+</tinui>

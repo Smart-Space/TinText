@@ -5,12 +5,13 @@
 设计上的TinText应用的主窗口、主进程
 """
 from tkinter import Toplevel
-from tkinter.filedialog import askopenfile, asksaveasfilename
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 import os
 
 from TinUI import BasicTinUI, TinUIXml
 
+import lib.gui.utils as utils
 from lib.TinEngine import TinText
 from lib.TinEngine.tin2html import TinTranslator
 
@@ -47,10 +48,11 @@ def load_tinfile():
 #文件
 def openfile(e):#打开文件
     global filename
-    tinfile=askopenfile(title='选择文件进行阅读',filetype=[('Tin文件','*.tin;*.tinx')])
+    tinfile=askopenfilename(title='选择文件进行阅读',filetype=[('Tin文件','*.tin;*.tinx')])
     if tinfile:
         if tinfile.endswith('.tin'):
             filename=tinfile
+            load_tinfile()
         elif tinfile.endswith('.tinx'):
             ...
 
@@ -66,6 +68,8 @@ def quitreader(e):
     quit()
 
 #搜索
+def open_textfinder(e):#打开文本查找器
+    textfinder.show()
 
 #工具
 def outputhtml(e):#导出为HTML
@@ -87,10 +91,14 @@ def outputhtml(e):#导出为HTML
     root.config(cursor='arrow')
     showinfo('导出成功','已在指定位置生成HTML文件')
 
+#关于
+def open_aboutwindow(e):#打开关于窗口
+    aboutwindow.show()
+
 
 #以下为初始化
 def __start():
-    global root, tinui, tintext
+    global root, tinui, tintext, textfinder, aboutwindow
 
     root=Toplevel()
     root.title('TinReader')
@@ -114,14 +122,20 @@ def __start():
         '-',
         ('退出\tctrl+q',quitreader)
     )
+    menu_search=(
+        ('搜索\tctrl+f',open_textfinder),
+    )
     menu_tools=(
         ('导出为html',outputhtml),
+    )
+    menu_about=(
+        ('关于TinText',open_aboutwindow),
     )
 
     tinui=BasicTinUI(root,height=30,bg='#fbfbfb')
     tinui.pack(fill='x')
     tinuix=TinUIXml(tinui)
-    tinuix.datas.update({'menu_file':menu_file,'menu_tools':menu_tools})
+    tinuix.datas.update({'menu_file':menu_file,'menu_search':menu_search,'menu_tools':menu_tools,'menu_about':menu_about})
     tinuix.loadxml(open('pages/reader.xml',encoding='utf-8').read())
     root.update()
 
@@ -134,5 +148,9 @@ def __start():
     root.bind('<Control-r>',reopenfile)
     root.bind('<Control-q>',quitreader)
     root.bind('<Control-e>',open_writer)
+    root.bind('<Control-f>',open_textfinder)
+
+    textfinder=utils.TextFinder('TinReader搜索',tintext)
+    aboutwindow=utils.AboutWindow()
 
     load_tinfile()

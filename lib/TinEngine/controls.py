@@ -69,7 +69,40 @@ class Balloon:
 
 class TinTextSeparate(tk.Canvas):
     #TinText内部控件，用作分割线
-    def __init__(self,tintext,width,color) -> None:
+    def __init__(self,tintext,width,color):
         super().__init__(master=tintext,width=width,bg=color,relief='flat',
         highlightthickness=0,height=2)
 
+
+class TinTextNote(tk.Canvas):
+    #TinText的引用说明框
+    def __init__(self,tintext,width,notes,font,markcolor,fg,bg,markbg):
+        """
+        notes:list
+        markcolor:str
+        fg:str
+        bg:str 画布颜色
+        markbg:str 文本背景色
+        """
+        super().__init__(master=tintext,width=width,bg=bg,relief='flat',
+        highlightthickness=0)
+        self.__initialize(width,notes,font,markcolor,fg,markbg)
+    
+    def __get_endy(self):
+        bbox=self.bbox('all')
+        if bbox:
+            return bbox[3]
+        else:
+            return 5
+        
+    def __initialize(self,width,notes,font,markcolor,fg,markbg):
+        for i in notes:
+            self.create_text((7,self.__get_endy()),text=i,font=font,fill=fg,anchor='nw',width=width-14)
+        bbox=self.bbox('all')
+        back=self.create_polygon((bbox[0],5,width-2,5,width-2,bbox[3],bbox[0],bbox[3]),
+        fill=markbg,outline=markbg,width=7)
+        self.create_line((2,5,2,bbox[3]),fill=markcolor,width=3,capstyle='round',joinstyle='round')
+        self.lower(back)
+        bbox=self.bbox('all')
+        height=bbox[3]-bbox[1]
+        self.config(height=height)

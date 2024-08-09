@@ -141,4 +141,11 @@ class TinTranslator():
                     _body.add(img(src=url,alt='',width=width,height=height))
                 else:
                     _body.add(img(src=url,alt=''))
+            elif tag == '<note>':
+                #引用或说明
+                notes=kw['note']
+                _quote=blockquote()
+                for note in notes:
+                    _quote.add(p(note))
+                _body.add(_quote)
         return doc

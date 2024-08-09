@@ -32,10 +32,17 @@
 |*注意，如果文件名为空，则直接使用链接。
 |/<img>本身不换行。|
 |-<img>TinLogo.png
+|-目前，暂不支持只含图片名称的<img>标记转译为html
 <img>TinLogo.png|https://smart-space.com.cn/img/TinLogo.png|100%x200
 
 <p>
 <p>使用<sp>标签生成分割线↓
 <sp>
 
-<t>结尾（<title>可用<t>替代，其它同义标记详见tin标记语言说明）
+<t>（<title>可用<t>替代，其它同义标记详见tin标记语言说明）
+
+<p>在TinML中，可以使用<n>或<note>来展现引用或说明文本。
+<n>引用&说明文本;
+|<n>&<note>的每一个标记内容均自动换行
+| 
+|当前，<n>标签还未与<p>标签整合|

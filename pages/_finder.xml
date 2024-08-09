@@ -1,0 +1,9 @@
+<!--TinUIXml编辑 本界面用作文本框的通用搜索工具-->
+<tinui>
+<line>
+    <line x='2' y='15' anchor='w'>
+        <entry width='300'>entry_search</entry>
+        <button2 text='搜索' command='self.funcs["go_to_search"]'></button2>
+    </line>
+</line>
+</tinui>
