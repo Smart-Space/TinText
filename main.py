@@ -7,7 +7,7 @@ Copyright since 2024 Smart-Space <smart-space@qq.com|tsan-zane@outlook.com>
 import platform
 import tkinter as tk
 import sys
-from multiprocessing import freeze_support, Process, Lock, Queue, Manager
+from multiprocessing import freeze_support, Process, Lock, Pipe
 
 from TinUI import BasicTinUI, TinUIXml
 
@@ -16,18 +16,17 @@ import process
 
 def quit():
     #允许子窗口调用，完全退出
+    process.close()
     sys.exit()
 
-
 if __name__=='__main__':
+    process.initial()
 
     def initial():
         if len(sys.argv)>1:#已有文件被指定加载
             gui.start_reader_with_file(sys.argv[1],quit)
         else:#常规启动
             gui.start_reader(quit)
-
-        process.initial()
 
     root=tk.Tk()
     root.withdraw()

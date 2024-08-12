@@ -180,9 +180,9 @@ def highlight(all=False):
         char=editor.get(pos)
         if char==';':
             line_context=editor.get(f"{pos} linestart", f"{pos} lineend")
-            if line_context.lstrip()[0]!='<':
+            if line_context.lstrip()[0] not in ('<','|'):
                 #开头不是标签，则跳过
-                s=f"{pos}+1c"
+                s=f"{pos} +1l linestart"
             #如果已经是多行模式，则跳过
             elif linemode:
                 s=f"{pos}+1c"
@@ -208,13 +208,16 @@ def highlight(all=False):
             if linemode:#开启了多行模式
                 #判断是不是在行末终止了多行模式
                 line_last=f"{pos} lineend -1c"
-                if pos==editor.index(line_last):#结尾
+                if __get_index_char(pos)=='0':#开头
+                    editor.tag_add('separate', pos)
+                    if line_context.lstrip()=='|':
+                        s=f"{pos}+1l"
+                    else:
+                        s=f"{pos} lineend-1c"
+                elif pos==editor.index(line_last):#结尾
                     linemode=False
                     editor.tag_add('separate', pos)
                     s=f"{pos}+2c"
-                elif __get_index_char(pos)=='0':#开头
-                    editor.tag_add('separate', pos)
-                    s=f"{pos} lineend -1c"#跳到行末
                 else:
                     #防止没有结尾匹配出错
                     s=f"{pos}+1c"
@@ -225,7 +228,7 @@ def highlight(all=False):
                 #判断行末是不是;开启了多行模式
                 line_last=f"{pos} lineend -1c"
                 if editor.get(line_last)==';':
-                    s=f"{pos}+1l linestart"
+                    s=f"{pos} lineend -1c"
                 else:
                     #若是单行模式，则正常高亮
                     editor.tag_add('separate', pos)
@@ -248,8 +251,7 @@ def highlight(all=False):
             editor.tag_add('tag', start_pos)
             editor.tag_add('tag', end_pos)
             editor.tag_add('tag_name', f"{start_pos}+1c", end_pos)
-        start_pos=f"{__get_index_line(start_pos)}.0"
-        s=f"{start_pos}+1l"
+        s=f"{start_pos}+1l linestart"
     #注释
     s=f"{__get_index_line(start)}.0"
     while True:
@@ -259,9 +261,10 @@ def highlight(all=False):
         if __get_index_char(pos)!='0':
             s=f"{pos}+1c"
             continue
-        pos=f"{__get_index_line(pos)}.0"
-        editor.tag_add('comment', pos, f"{pos}+1l-1c")
-        s=f"{pos}+1l"
+        comment_s=f"{pos} linestart"
+        comment_e=f"{pos} lineend"
+        editor.tag_add('comment', comment_s, comment_e)
+        s=f"{pos}+1l linestart"
     editor.tag_raise('comment')
     editor.tag_raise('sel')
 

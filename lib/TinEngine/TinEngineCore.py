@@ -17,7 +17,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 from tempfile import NamedTemporaryFile
 
-from tkinterweb.htmlwidgets import HtmlFrame
+# from tkinterweb.htmlwidgets import HtmlFrame
 from PIL import Image,ImageTk# require
 import requests# tkinterweb require
 from TinUI import BasicTinUI

@@ -147,12 +147,12 @@ class TextFinder(Toplevel):
 
 class AboutWindow(Toplevel):
     #TinText的关于窗口
-    def __init__(self):
+    def __init__(self,version):
         """
         初始化，创建关于窗口
         """
         super().__init__()
-        self.title('关于TinText应用组')
+        self.title(f'关于 TinText v{version} 应用组')
         self.withdraw()
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()

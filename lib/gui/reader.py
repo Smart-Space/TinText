@@ -11,6 +11,7 @@ import os
 
 from TinUI import BasicTinUI, TinUIXml
 
+import process
 import lib.gui.utils as utils
 from lib.TinEngine import TinText
 from lib.TinEngine.tin2html import TinTranslator
@@ -100,6 +101,8 @@ def open_aboutwindow(e):#打开关于窗口
 def __start():
     global root, tinui, tintext, textfinder, aboutwindow
 
+    version=process.config('get','general','Version','ver')
+
     root=Toplevel()
     root.title('TinReader')
     root.focus()
@@ -151,6 +154,6 @@ def __start():
     root.bind('<Control-f>',open_textfinder)
 
     textfinder=utils.TextFinder('TinReader搜索',tintext)
-    aboutwindow=utils.AboutWindow()
+    aboutwindow=utils.AboutWindow(version)
 
     load_tinfile()
