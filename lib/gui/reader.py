@@ -82,6 +82,8 @@ def outputhtml(e):#导出为HTML
     newname=asksaveasfilename(title='导出为HTML',filetypes=[('html文件','*.html')])
     if not newname:
         return
+    if not newname.endswith('.html'):
+        newname+='.html'
     root.config(cursor='watch')
     with open('./data/render/blubook.css','r',encoding='utf-8') as f:
         style=f.read()

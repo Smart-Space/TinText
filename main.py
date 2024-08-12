@@ -30,5 +30,5 @@ if __name__=='__main__':
 
     root=tk.Tk()
     root.withdraw()
-    root.after(10,initial)
+    root.after(1,initial)
     root.mainloop()
