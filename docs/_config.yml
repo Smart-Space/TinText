@@ -1,4 +1,4 @@
 theme: jekyll-theme-primer
 
-title: [TinText]
-description: [An application for TinML based on python.tkinter]
+title: TinText
+description: An application for TinML based on python.tkinter
