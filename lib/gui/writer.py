@@ -5,7 +5,6 @@
 设计上作为TinReader的下一级，通过TinReader调用
 """
 from tkinter import Toplevel, StringVar
-from tkinter.scrolledtext import ScrolledText as Text
 from tkinter.messagebox import askyesno
 from tkinter.filedialog import asksaveasfilename
 import os
@@ -67,7 +66,8 @@ def load_tinfile():
     with open(filename, 'r', encoding='utf-8') as f:
         editor.insert('end', f.read())
     editor.edit_modified(False)
-    #...其它渲染操作
+    title_filename=os.path.basename(filename)
+    root.title('TinWriter - '+title_filename)
     highlight(True)
 
 
@@ -210,11 +210,14 @@ def highlight(all=False):
         elif char=='|':
             if editor.get(f'{pos}+1c')=='-':
                 #注释
-                comment_s=f"{pos} linestart"
-                comment_e=f"{pos} lineend"
-                editor.tag_add('comment', comment_s, comment_e)
-                s=f"{pos}+1l linestart"
-                continue
+                if __get_index_char(pos)=='0':#开头
+                    comment_s=f"{pos} linestart"
+                    comment_e=f"{pos} lineend"
+                    editor.tag_add('comment', comment_s, comment_e)
+                    s=f"{pos}+1l linestart"
+                    continue
+                else:
+                    pass
             line_context=editor.get(f"{pos} linestart", f"{pos} lineend")
             if linemode:#开启了多行模式
                 #判断是不是在行末终止了多行模式
@@ -342,8 +345,8 @@ def __start():
     tinuix.loadxml(open('pages/writer.xml',encoding='utf-8').read())
     editor_buttons=tinuix.tags['buttons']
 
-    editor=Text(root, borderwidth=0, relief='flat', font='Consolas 13',
-        insertbackground='#000000', insertborderwidth=1, wrap='char',
+    editor=utils.ScrolledText(root, borderwidth=0, relief='flat', font='Consolas 13',
+        insertbackground='#000000', insertborderwidth=1, wrap='char', spacing1=3,
         undo=True)
     editor.place(x=0, y=40, width=750, height=690)
     # editor.bind('<<Undo>>', editor_undo) #避免重复操作

@@ -1,7 +1,6 @@
 """
 TinEngine核心类
 """
-from tkinter.scrolledtext import ScrolledText
 import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import showinfo,askyesno,showerror
@@ -24,7 +23,7 @@ from TinUI import BasicTinUI
 
 from .tin2html import TinML
 from .error import NoLinesMode, TagNoMatch, NoLinesMark, AlreadyStartLine
-from .controls import Balloon, TinTextSeparate, TinTextNote
+from .controls import ScrolledText, Balloon, TinTextSeparate, TinTextNote
 
 
 class TinParser():
@@ -296,9 +295,9 @@ class TinText(ScrolledText):
         #引用说明
         self.update()
         width=self.winfo_width()
-        note=TinTextNote(self,width,notes,self.cget('font'),'#5969e0','#7e7e7e',self.cget('background'),'#f9f9f9')
+        note=TinTextNote(self,width*0.9,notes,self.cget('font'),'#5969e0','#7e7e7e',self.cget('background'),'#f9f9f9')
         self.widgets.append(note)
-        self.window_create('end',window=note,align='center')
+        self.window_create('end',window=note,align='center',padx=width*0.05)
         self.insert('end','\n')
 
     def render(self,tintext='<tin>TinText',new=True):

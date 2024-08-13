@@ -3,7 +3,8 @@
 TinText界面功能中的杂项功能
 """
 from tkinter import CallWrapper, Text, Toplevel
-from tkinter.scrolledtext import ScrolledText
+import tkinter as tk
+from tkinter import ttk
 
 from TinUI import BasicTinUI, TinUIXml
 
@@ -50,6 +51,33 @@ def bind(widget,name,seq=None,func=None,add=None):
         return widget.tk.call('bind',name,seq)
     else:
         return widget.tk.splitlist(widget.tk.call('bind',name))
+
+
+class ScrolledText(tk.Text):
+    """
+    使用ttk重写支持滚动条的文本框
+    """
+    def __init__(self, master=None, **kw):
+        self.frame=tk.Frame(master)
+
+        self.vbar=ttk.Scrollbar(self.frame)
+        self.vbar.pack(side='right',fill='y')
+
+        kw.update({'yscrollcommand':self.vbar.set})
+        tk.Text.__init__(self,self.frame,**kw)
+        self.pack(side='left',fill='both',expand=True)
+        self.vbar['command']=self.yview
+
+        text_meths=vars(tk.Text).keys()
+        methods=vars(tk.Pack).keys() | vars(tk.Grid).keys() | vars(tk.Place).keys()
+        methods=methods.difference(text_meths)
+
+        for m in methods:
+            if m[0]!='_' and m!='config' and m!='configure':
+                setattr(self,m,getattr(self.frame,m))
+    
+    def __str__(self):
+        return str(self.frame)
 
 
 #TinWriter的行数显示

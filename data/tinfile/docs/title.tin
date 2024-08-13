@@ -1,0 +1,10 @@
+<t>标题
+
+<t><title>title|[level];
+|2|
+
+<p>*title: |标题
+<p>*level: |标题层级，参数为1~6
+
+<p>
+<p>/同义标签：<title>

@@ -16,7 +16,7 @@ import process
 
 def quit():
     #允许子窗口调用，完全退出
-    process.close()
+    process.close()#关闭后端进程
     sys.exit()
 
 if __name__=='__main__':

@@ -36,6 +36,7 @@ def start_with_file(_filename,_quit,**functions):
 
 def load_tinfile():
     #载入tin文件
+    root.focus_set()
     if filename==None:
         return
     with open(filename,encoding='utf-8') as f:
@@ -158,4 +159,5 @@ def __start():
     textfinder=utils.TextFinder('TinReader搜索',tintext)
     aboutwindow=utils.AboutWindow(version)
 
+    root.focus_set()
     load_tinfile()

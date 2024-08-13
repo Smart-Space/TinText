@@ -1,0 +1,12 @@
+<t>分割线
+
+<t><sp>color;
+|2|
+
+<p>*color: |颜色
+<p>颜色属性可为空。
+
+<p>*注意，TinText导出html时，分割线使用css中定义的样式，包括颜色。
+
+<p>
+<p>/同义标签：<separate>

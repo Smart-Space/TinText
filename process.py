@@ -15,8 +15,11 @@ def initial():
     p.start()
 
 def close():
-    p.terminate()
-    p.close()
+    try:
+        p.terminate()#终止进程
+        p.close()#关闭进程
+    except:
+        pass
 
 def config(*args):
     conn_parent.send(['config',*args])
