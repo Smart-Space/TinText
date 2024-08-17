@@ -5,5 +5,18 @@
         <entry width='300'>entry_search</entry>
         <button2 text='搜索' command='self.funcs["go_to_search"]'></button2>
     </line>
+    <line>
+        <checkbutton text='区分大小写' command='self.funcs["set_case"]'>check_case_button</checkbutton>
+        <checkbutton text='正则表达式' command='self.funcs["set_regexp"]'>check_regexp_button</checkbutton>
+        <checkbutton text='循环查找' command='self.funcs["set_loop"]'>check_loop_button</checkbutton>
+    </line>
+    <line x='2' y='80' anchor='w'>
+        <entry width='300'>entry_replace</entry>
+        <button2 text='替换' command='self.funcs["go_to_replace"]'></button2>
+    </line>
+    <line>
+        <checkbutton text='全部替换' command='self.funcs["set_replaceall"]'>check_replaceall_button</checkbutton>
+        <line y='112' anchor='w'><button2 text='调换' icon='&#xE8AB;' command='self.funcs["exchange_word"]'></button2></line>
+    </line>
 </line>
 </tinui>

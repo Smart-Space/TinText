@@ -6,7 +6,9 @@ from tkinter import CallWrapper, Text, Toplevel
 import tkinter as tk
 from tkinter import ttk
 
-from TinUI import BasicTinUI, TinUIXml
+from tinui import BasicTinUI, TinUIXml
+
+import process
 
 
 #_register, bind重写，用于通过tcl命令创建的控件的事件绑定
@@ -110,14 +112,19 @@ class LineViewer(BasicTinUI):
 class TextFinder(Toplevel):
 
     index='1.0'#当前搜索位置
+    _nocase=False
+    _loop=False
+    _regexp=False
+    _replaceall=False
 
-    def __init__(self,title='search',text=None,*args,**kw):
+    def __init__(self,title='search',text=None,searchmode=None,searchmodename='',*args,**kw):
         """
         初始化，创建文本查找控件
         """
         super().__init__(*args,**kw)
         self.title(title)
-        self.geometry("375x80")
+        self.iconbitmap('./logo.ico')
+        self.geometry("375x60")# y search 60, replace 125
         self.withdraw()
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.close)
@@ -125,37 +132,85 @@ class TextFinder(Toplevel):
         self.text=text
         self.text.tag_config("found", background="yellow")
 
+        self.searchmode=searchmode
+        self.searchmodename=searchmodename
+
         self.tinui=BasicTinUI(self)
         self.tinui.pack(expand=True,fill='both')
 
         with open('./pages/_finder.xml','r',encoding='utf-8') as f:
             xml=f.read()
         self.tinuixml=TinUIXml(self.tinui)
-        self.tinuixml.funcs['go_to_search']=self.go_to_search
+        self.tinuixml.funcs.update({'go_to_search':self.go_to_search,'go_to_replace':self.go_to_replace,
+        'set_case':self.set_case,'set_regexp':self.set_regexp,'set_loop':self.set_loop,
+        'set_replaceall':self.set_replaceall,'exchange_word':self.exchange_word})
         self.tinuixml.loadxml(xml)
         self.entry_search=self.tinuixml.tags['entry_search'][0]
+        self.entry_replace=self.tinuixml.tags['entry_replace'][0]
+        self.check_case_btn=self.tinuixml.tags['check_case_button'][-2]
+        self.check_regexp_btn=self.tinuixml.tags['check_regexp_button'][-2]
+        self.check_loop_btn=self.tinuixml.tags['check_loop_button'][-2]
+        self.check_replaceall_btn=self.tinuixml.tags['check_replaceall_button'][-2]
+
+        if self.searchmode.getboolean('case'): self.check_case_btn.on()
+        if self.searchmode.getboolean('regexp'): self.check_regexp_btn.on()
+        if self.searchmode.getboolean('loop'): self.check_loop_btn.on()
+        if 'replace_all' in self.searchmode:
+            if self.searchmode.getboolean('replace_all'): self.check_replaceall_btn.on()
 
     def go_to_search(self,e):
         """
-        跳转到查找文本
+        查找文本
         """
         self.text.tag_remove('found','1.0','end')
         text=self.entry_search.get()
         if text=='':
-            return
-        index=self.text.search(text,self.index,stopindex='end')
-        if index:
+            return None, None
+        index=self.text.search(text,self.index,stopindex='end',nocase=self._nocase,regexp=self._regexp)
+        if index:#有搜索结果
             self.index=index+f'+{len(text)}c'
             self.text.tag_add('found',index,f'{index}+{len(text)}c')
             self.text.mark_set('insert',index)
             self.text.see(index)
+            return index, len(text)
         else:
             if self.index=='1.0':
                 #无匹配，退出搜索
                 self.text.tag_remove('found','1.0','end')
-                return
-            self.index='1.0'
-            self.go_to_search(None)
+                return None, None
+            #匹配完毕，查看是否需要循环搜索
+            if self._loop:
+                self.index='1.0'
+                return self.go_to_search(None)
+    
+    def go_to_replace(self,e):
+        """
+        替换文本
+        """
+        text=self.entry_replace.get()
+        if text=='':
+            return
+        index, length=self.go_to_search(None)
+        if not index:
+            return
+        while index!=None:
+            self.text.delete(index,f'{index}+{length}c')
+            self.text.insert(index,text,'found')
+            if self._replaceall:#替换全部
+                index, length=self.go_to_search(None)
+            else:
+                break
+    
+    def exchange_word(self,e):
+        """
+        调换输入框文字
+        """
+        find_word=self.entry_search.get()
+        change_word=self.entry_replace.get()
+        self.entry_search.delete(0,'end')
+        self.entry_search.insert(0,change_word)
+        self.entry_replace.delete(0,'end')
+        self.entry_replace.insert(0,find_word)
     
     def close(self):
         """
@@ -165,12 +220,33 @@ class TextFinder(Toplevel):
         self.text.tag_remove('found','1.0','end')
         self.withdraw()
     
-    def show(self):
+    def show(self,replace=False):
         """
         显示窗口
         """
+        if replace:#包含替换功能
+            self.geometry('375x125')
+        else:
+            self.geometry('375x60')
         self.deiconify()
         self.entry_search.focus_set()
+    
+    def set_case(self,val):
+        self._nocase=not val
+        process.config('set','general',self.searchmodename,'case',str(val))
+        process.config('save','general')
+    def set_regexp(self,val):
+        self._regexp=val
+        process.config('set','general',self.searchmodename,'regexp',str(val))
+        process.config('save','general')
+    def set_loop(self,val):
+        self._loop=val
+        process.config('set','general',self.searchmodename,'loop',str(val))
+        process.config('save','general')
+    def set_replaceall(self,val):
+        self._replaceall=val
+        process.config('set','general',self.searchmodename,'replace_all',str(val))
+        process.config('save','general')
 
 
 class AboutWindow(Toplevel):
@@ -181,6 +257,7 @@ class AboutWindow(Toplevel):
         """
         super().__init__()
         self.title(f'关于 TinText v{version} 应用组')
+        self.iconbitmap('./logo.ico')
         self.withdraw()
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()

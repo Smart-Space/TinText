@@ -2,6 +2,9 @@
 TinText Tin富文本标记语言
 基于python-TinUI(tkinter)，重塑于TinReader
 
+project-url: https://tintext.smart-space.com.cn
+project-dev: https://github.com/smart-space/tintext
+
 Copyright since 2024 Smart-Space <smart-space@qq.com|tsan-zane@outlook.com>
 """
 import platform
@@ -9,7 +12,7 @@ import tkinter as tk
 import sys
 from multiprocessing import freeze_support, Process, Lock, Pipe
 
-from TinUI import BasicTinUI, TinUIXml
+from tinui import BasicTinUI, TinUIXml
 
 import gui
 import process
@@ -31,4 +34,5 @@ if __name__=='__main__':
     root=tk.Tk()
     root.withdraw()
     root.after(1,initial)
+    # root.iconbitmap('./logo.ico')
     root.mainloop()

@@ -3,6 +3,7 @@
 TinText的后端进程-配置文件
 """
 import os
+
 from lib.structure import SettingDict
 
 config_files=(
@@ -20,6 +21,9 @@ def loop(command,*args):
     if command=='get':
         #get filename itemname key
         return config_parsers[args[0]].get(args[1], args[2])
+    elif command=='get_item':
+        #get filename itemname
+        return config_parsers[args[0]].get_item(args[1])
     elif command=='set':
         #set filename itemname key value
         config_parsers[args[0]].set(args[1], args[2], args[3])

@@ -26,6 +26,9 @@ class SettingDict():
 
     def get(self,item,key):
         return self.cfg[item][key]
+    
+    def get_item(self,item):
+        return self.cfg[item]
 
     def set(self,item,key,val):
         self.cfg[item][key]=val

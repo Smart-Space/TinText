@@ -9,10 +9,11 @@ from tkinter.messagebox import askyesno
 from tkinter.filedialog import asksaveasfilename
 import os
 
-from TinUI import BasicTinUI, TinUIXml
+from tinui import BasicTinUI, TinUIXml, show_info, show_warning, show_question, show_success, show_error
 
 import lib.gui.utils as utils
 from lib.TinEngine import TinText
+import process
 
 
 already=False#判断是否已经加载过界面，避免重复加载
@@ -53,7 +54,7 @@ def closs_writer():
     if SAVE:
         pass
     else:
-        if askyesno('该文件未保存','是否在编辑器关闭之前保存该文件？'):
+        if show_question(root,'该文件未保存','是否在编辑器关闭之前保存该文件？'):
             save_file(None)
     SAVE=True
     root.withdraw()
@@ -127,17 +128,12 @@ def editor_synchronize(e):
     editor.yview('-pickplace', index)
 
 
-# def editor_search(e):
-#     #搜索
-#     pass
-# def editor_replace(e):
-#     #替换
-#     pass
-
 def open_textfinder(e):
     #打开文本查找器
-    #working 后期TextFinder增加替换功能
     textfinder.show()
+def open_textfinder_replace(e):
+    #打开文本替换器
+    textfinder.show(replace=True)
 
 
 def on_text_change(e):
@@ -325,6 +321,7 @@ def __start():
     
     root=Toplevel()
     root.title('TinWriter')
+    root.iconbitmap('./logo.ico')
     root.geometry('1200x750+350+100')
     root.resizable(False, False)
     screen_width = root.winfo_screenwidth()
@@ -339,7 +336,7 @@ def __start():
     tinuix=TinUIXml(tinui)
     tinuix.datas['appbar']=(
         ('','\uE74E',save_file),('渲染','\uE8A1',reopenfunc),('另存为','\uE792',saveas_file),
-        '',('搜索','\uE721',open_textfinder),('替换','\uE8EE',None),
+        '',('搜索','\uE721',open_textfinder),('替换','\uE8EE',open_textfinder_replace),
         '',('','\uE7A7',editor_undo),('','\uE7A6',editor_redo),
     )
     tinuix.loadxml(open('pages/writer.xml',encoding='utf-8').read())
@@ -394,6 +391,9 @@ def __start():
     title_filename=os.path.basename(filename)
     root.title('TinWriter - '+title_filename)
 
-    textfinder=utils.TextFinder('TinWriter搜索',editor)
+    #获取配置信息
+    searchmode=process.config('get_item','general','WriterSearchMode')
+
+    textfinder=utils.TextFinder('TinWriter搜索',editor,searchmode,'WriterSearchMode')
 
     root.focus_set()

@@ -3,8 +3,7 @@ TinEngine核心类
 """
 import tkinter as tk
 from tkinter import ttk
-from tkinter.messagebox import showinfo,askyesno,showerror
-from tkinter.filedialog import askdirectory
+# from tkinter.filedialog import askdirectory
 import tkinter.font as tkfont
 import webbrowser
 from time import sleep
@@ -14,16 +13,17 @@ import io
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
-from tempfile import NamedTemporaryFile
+# from tempfile import NamedTemporaryFile
 
 # from tkinterweb.htmlwidgets import HtmlFrame
 from PIL import Image,ImageTk# require
-import requests# tkinterweb require
-from TinUI import BasicTinUI
+import requests
+from tinui import BasicTinUI,show_info,show_success,show_warning,show_error,show_question
 
 from .tin2html import TinML
 from .error import NoLinesMode, TagNoMatch, NoLinesMark, AlreadyStartLine
-from .controls import ScrolledText, Balloon, TinTextSeparate, TinTextNote
+from .controls import ScrolledText, Balloon, TinTextSeparate, TinTextNote,\
+    TinTextTable
 
 
 class TinParser():
@@ -299,6 +299,15 @@ class TinText(ScrolledText):
         self.widgets.append(note)
         self.window_create('end',window=note,align='center',padx=width*0.05)
         self.insert('end','\n')
+    
+    def __render_table(self,data):
+        #表格
+        self.update()
+        width=self.winfo_width()
+        table=TinTextTable(self,width,self.cget('background'),data,self.cget('font'))
+        self.widgets.append(table)
+        self.window_create('end',window=table.frame,align='center')
+        self.insert('end','\n')
 
     def render(self,tintext='<tin>TinText',new=True):
         #渲染tin标记
@@ -311,15 +320,17 @@ class TinText(ScrolledText):
             self.delete(1.0,'end')#删除内容
             self.images.clear()#清空图片列表
             self.tinml.clear()#删除标记
-            for i in self.widgets:
+            for i in self.widgets:#删除内部控件
                 i.destroy()
-            self.widgets.clear()#删除内部控件
+            self.widgets.clear()#清空内部控件
             for i in self.tag_names():
                 #仅删除开头为“"”的样式名称
                 #在TinText渲染中，"tagname"为子样式
                 if i[0]=='"':
                     self.tag_delete(i)
             self.mark_unset()#删除所有标记
+        #每次渲染都要初始化的标记
+        TABLE_TAG=False#是否为表格标记
         for unit in tinconts:
             #unit[0]为行数，unit[1]为标记标签，unit[2]必定存在
             #处理错误
@@ -328,6 +339,7 @@ class TinText(ScrolledText):
                 break
             #解析标记、渲染
             unit_length=len(unit)
+            #解析标记
             match unit[1]:
                 case '<tin>':
                     #<tin>可认为是注释
@@ -521,8 +533,39 @@ class TinText(ScrolledText):
                     #这类只在tin语言渲染中存在的操作，不参与tinml和html渲染
                     sleep(t)
                 case '<tb>'|'<table>':
-                    #table
-                    ...
+                    #<tb>title1|title2|[title3]|...
+                    #<tb>cont1|cont2|[cont2]|...
+                    #...
+                    #</tb>
+                    if TABLE_TAG:#已经开启了表格渲染
+                        this_table_length=len(unit[2:])
+                        if this_table_length!=table_length:
+                            err=f'[{unit[0]}]<tb>表格数据长度错误：\n{"|".join(unit[1:])}\n表格数据长度必须与标题行一致'
+                            self.__render_err(err)
+                            break
+                        table_data.append(unit[2:])
+                    else:
+                        TABLE_TAG=True
+                        table_length=len(unit[2:])
+                        if table_length==1:
+                            err=f'[{unit[0]}]<tb>表格数据至少为两列：\n{"|".join(unit[1:])}\n<tb>title1|title2|[title3]|...'
+                            self.__render_err(err)
+                            break
+                        table_data=[(unit[2:]),]
+                    #<tb>标签仅录入表格数据，最终渲染由</tb>标签完成
+                case '</tb>'|'</table>':
+                    #计入表格数据录入，并渲染
+                    if not TABLE_TAG:
+                        err=f'[{unit[0]}]<tb>标签未开启，请先开启'
+                        self.__render_err(err)
+                        break
+                    if len(table_data)==1:#不能只有表头，否则无法渲染
+                        err=f'[{unit[0]}]<tb>表格数据为空，请至少输入一行'
+                        self.__render_err(err)
+                        break
+                    TABLE_TAG=False
+                    self.__render_table(table_data)
+                    self.tinml.addtin('<tb>',data=table_data)
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)

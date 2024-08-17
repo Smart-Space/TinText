@@ -21,6 +21,11 @@ def close():
     except:
         pass
 
+
 def config(*args):
     conn_parent.send(['config',*args])
+    return conn_parent.recv()
+
+def version(*args):
+    conn_parent.send(['version',*args])
     return conn_parent.recv()

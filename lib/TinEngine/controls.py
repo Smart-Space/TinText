@@ -4,7 +4,7 @@ TinText内部控件
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image,ImageTk
-from TinUI import BasicTinUI, TinUIXml
+from tinui import BasicTinUI, TinUI, TinUIXml
 
 
 class ScrolledText(tk.Text):
@@ -134,3 +134,16 @@ class TinTextNote(tk.Canvas):
         bbox=self.bbox('all')
         height=bbox[3]-bbox[1]
         self.config(height=height)
+
+
+class TinTextTable(TinUI):
+    #TinText的表格控件
+    def __init__(self,master,width,bg='#fbfbfb',data=None,font=('微软雅黑',12)):
+        super().__init__(master,update=False,width=width,bg=bg)
+        table=self.add_table((2,2),data=data,font=font)
+        bbox=list(self.bbox('all'))
+        height=bbox[3]-bbox[1]+4
+        bbox[2]+=2#宽度右侧留白
+        bbox[3]+=2#高度底部留白
+        self.config(scrollregion=bbox,width=width,height=height)
+    

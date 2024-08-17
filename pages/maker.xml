@@ -1,0 +1,19 @@
+<!--TinUIXml编辑-->
+<tinui>
+<line>
+    <line y='20' anchor='w'>
+       <paragraph text='请选择要生成的文件类型：'></paragraph>
+       <combobox width='150' height='100' text='文件类型' content='("TINP (加密)","TINX (集成)")' command='self.funcs["sel_type"]'>combobox</combobox>
+    </line>
+    <line y='70' anchor='w'>
+        <paragraph text='输入密码：'></paragraph>
+        <entry width='385'>entry</entry>
+    </line>
+    <line pady='10'>
+        <button2 text='开始生成目标格式文件' minwidth='475' command='self.funcs["gen"]'>button</button2>
+    </line>
+    <line>
+        <textbox width='475' height='363' scrollbar='True'>textbox</textbox>
+    </line>
+</line>
+</tinui>
