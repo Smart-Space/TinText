@@ -5,6 +5,8 @@ TinText界面功能中的杂项功能
 from tkinter import CallWrapper, Text, Toplevel
 import tkinter as tk
 from tkinter import ttk
+from threading import Thread, Timer
+from time import sleep
 
 from tinui import BasicTinUI, TinUIXml
 
@@ -284,4 +286,149 @@ class AboutWindow(Toplevel):
         显示窗口
         """
         self.deiconify()
+
+
+#TinWriter编辑框提示部件（非控件，而是接管editor和tintext提示文本框）
+class WriterHelper:
+    #内部启用多线程，防止阻塞主线程
+    ON=True#是否启用提示功能
+    infoshow=False#是否显示提示信息
     
+    #alt+g 自动生成的根据
+    tags_generate={
+    '<img>':'name|[url]|[size]',
+    '<image>':'name|[url]|[size]',
+    '<lnk>':'text|[url]|[description]',
+    '<link>':'text|[url]|[description]',
+    '<a>':'text|[url]|[description]',
+    '<n>':'note1;\n|[note2]\n|[note3]...|',
+    '<note>':'note1;\n|[note2]\n|[note3]...|',
+    '<p>':'text1|[text2]|[text3]...',
+    '<part>':'name',
+    '<pt>':'name',
+    '</part>':'name',
+    '</pt>':'name',
+    '<sp>':'[color]',
+    '<separate>':'[color]',
+    '<stop>':'time',
+    '<tb>':'co1|col2|[col3]...',
+    '<table>':'co1|col2|[col3]...',
+    '</tb>':'',
+    '</table>':'',
+    '<title>':'title|[level]',
+    '<t>':'title|[level]',
+    }
+
+    def __init__(self,editor,about):
+        #editor为TinWriter编辑框，about为TinWriter.tintext提示文本框
+        self.editor=editor
+        self.about=about
+        self.info=tk.Label(self.editor,text='',anchor='n',font=self.editor.cget('font'),bg=self.editor.cget('background'),fg='grey',relief='flat')
+        self.editor.bind('<Alt-p>',self.edit)
+        self.editor.bind('<Alt-g>',self.generate)
+        self.start()
+    
+    def start(self):
+        self.ON=True
+        self.thread=Thread(target=self.core)
+        self.thread.start()
+    
+    def core(self):
+        #核心函数，负责处理提示
+        def __get_char(index):
+            #获取index位置的字符
+            return index.split('.')[1]
+        while self.ON:
+            index=self.editor.index('insert')
+            line=self.editor.get(f'{index} linestart',f'{index} lineend')
+            if __get_char(index)=='0' and line in ('\n',''):#开头
+                self.infoshow=True
+                lastchar=self.get_last_char()
+                if lastchar==None:
+                    pass
+                elif lastchar=='<':#标签
+                    # print('tag')
+                    self.showinfo('<>')
+                    # self.editor.insert('insert','<>')
+                    # self.editor.mark_set('insert',f'{index} -1c')
+                elif lastchar=='|':#多行
+                    # print('multi tag')
+                    self.showinfo('|')
+            else:
+                self.infoshow=False
+                startchar=self.editor.get(f'{index} linestart')
+                if startchar=='<':#标签
+                    # print('tag content')
+                    ...
+                elif startchar=='|':
+                    if self.editor.get(f'{index} linestart +1c')=='-':#注释
+                        pass
+                    else:#多行
+                        # print('multi tag content')
+                        ...
+            sleep(0.3)
+            self.info.place_forget()
+
+    def get_last_char(self):
+        #获取光标上面几行的第一个有效字符
+        #比如 | < 【其它文字】
+        char=None
+        index=self.editor.index('insert')
+        while True:
+            if index=='1.0':#开头
+                return None
+            index=self.editor.index(f'{index} -1l linestart')
+            startchar=self.editor.get(index)
+            if startchar=='\n':#空行
+                continue
+            elif startchar=='<':#标签
+                if self.editor.get(f'{index} lineend -1c')==';':
+                    return '|'
+                else:
+                    return startchar
+            elif startchar=='|':
+                if self.editor.get(f'{index} +1c')=='-':#注释
+                    continue
+                elif self.editor.get(f'{index} lineend -1c')=='|':#多行结束
+                    return '<'#当作标签结束
+                else:
+                    return startchar
+            else:
+                continue
+    
+    def showinfo(self,char):
+        #显示提示
+        self.infoshow=True
+        bbox=self.editor.bbox('insert')
+        self.info['text']=char
+        if not bbox:
+            return
+        self.info.place(x=bbox[0]+1,y=bbox[1]-4)
+    
+    def edit(self,e):
+        #编辑提示
+        # self.editor.delete('insert-1c')
+        if not self.infoshow:
+            return
+        char=self.info['text']
+        self.editor.insert('insert',char)
+        self.info.place_forget()
+        if char=='<>':
+            self.editor.mark_set('insert','insert -1c')
+
+    def generate(self,e):
+        #生成提示
+        if self.editor.get('insert linestart')!='<':#不是标签
+            return
+        lastchar=self.editor.get('insert lineend')
+        if lastchar=='\n':#如果是换行，则检查前一个字符
+            if self.editor.get('insert lineend -1c')!='>':#末尾不是标签结尾
+                return
+        elif lastchar!='>':#最后一行，检查最后一个字符
+            return
+        tag=self.editor.get('insert linestart','insert lineend')
+        if tag not in self.tags_generate:
+            return
+        else:
+            content=self.tags_generate[tag]
+            self.editor.insert('insert lineend',content)

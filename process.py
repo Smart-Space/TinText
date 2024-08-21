@@ -29,3 +29,7 @@ def config(*args):
 def version(*args):
     conn_parent.send(['version',*args])
     return conn_parent.recv()
+
+def cache(*args):
+    conn_parent.send(['cache',*args])
+    return conn_parent.recv()

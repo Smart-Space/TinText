@@ -14,7 +14,7 @@ def initial():
     general_ini_parser = config_parsers['general']
 
 def loop(command,*args):
-    #处理 version 命令 working
+    #处理 version 命令
     if command == 'this':
         #this
         return general_ini_parser.get('Version','ver')

@@ -12,6 +12,7 @@ import os
 from tinui import BasicTinUI, TinUIXml, show_info, show_warning, show_question, show_success, show_error
 
 import lib.gui.utils as utils
+import lib.gui.writertools as writertools
 from lib.TinEngine import TinText
 import process
 
@@ -44,10 +45,11 @@ def start(_filname='',_reopenfunc=None,_readerroot=None):
     if already:
         root.deiconify()
         load_tinfile()
+        writerhelper.start()
     else:
         __start()
 
-def closs_writer():
+def close_writer():
     #关闭窗口，并保存文件
     #若文件为保存，询问是否保存
     global SAVE
@@ -57,6 +59,7 @@ def closs_writer():
         if show_question(root,'该文件未保存','是否在编辑器关闭之前保存该文件？'):
             save_file(None)
     SAVE=True
+    writerhelper.ON=False
     root.withdraw()
     readerroot.focus_set()
 
@@ -126,6 +129,27 @@ def editor_synchronize(e):
     #缩略图和编辑框同步
     index=editor.tk.call(peert, 'index', '@0,200')
     editor.yview('-pickplace', index)
+
+
+#切换注释
+def toggle_comment(e):
+    try:
+        sel_start=editor.index('sel.first')
+        sel_end=editor.index('sel.last')
+    except:
+        sel_start=editor.index('insert')
+        sel_end=editor.index('insert')
+    startline=int(__get_index_line(sel_start))
+    endline=int(__get_index_line(sel_end))
+    startchar=editor.get(f'{startline}.0',f'{startline}.0 +2c')
+    if startchar!='|-':
+        for i in range(startline,endline+1):
+            editor.insert(f'{i}.0', f'|-')
+    else:
+        for i in range(startline,endline+1):
+            char=editor.get(f'{i}.0', f'{i}.0 +2c')
+            if char=='|-':#如果当前字符是|-，则删除
+                editor.delete(f'{i}.0', f'{i}.0 +2c')
 
 
 def open_textfinder(e):
@@ -315,7 +339,7 @@ def button_call_back(e):
 
 def __start():
     #加载窗口
-    global root, editor, tintext, peert, already, textfinder
+    global root, editor, tintext, peert, already, textfinder, writerhelper
 
     already=True
     
@@ -349,6 +373,8 @@ def __start():
     # editor.bind('<<Undo>>', editor_undo) #避免重复操作
     # editor.bind('<<Redo>>', editor_redo)
     editor.bind('<MouseWheel>', peer_synchronize)
+    editor.bind('<Alt-;>',lambda e: editor.insert('insert',';'))
+    editor.bind('<Alt-/>',toggle_comment)
     # editor.bind('<FocusIn>', on_focus)
     # editor.bind('<FocusOut>', out_focus)
     # editor.bind('<KeyRelease>',on_text_change)
@@ -375,21 +401,28 @@ def __start():
     lineviewer.place(x=0, y=730, width=750, height=20)
 
     toolsui=BasicTinUI(root,bg='#ffffff')
-    toolsui.place(x=800, y=0, width=300, height=450)
-    toolsui.add_title((5,5),'Comming soon...')
+    toolsui.place(x=800, y=0, width=300, height=400)
+    toolsuix=TinUIXml(toolsui)
+    toolsuix.loadxml(open('./pages/writer-tools.xml',encoding='utf-8').read())
+    toolsbook=toolsuix.tags['ntbook'][-2]#notebook funcs
+    writertools.initial(toolsbook,editor)
 
     tintext=TinText(root,font='Consolas 13')
     tintext.place(x=750, y=400, width=350, height=350)
     tintext.config(state='disabled')
 
-    root.protocol('WM_DELETE_WINDOW', closs_writer)
+    root.protocol('WM_DELETE_WINDOW', close_writer)
     root.bind('<Control-s>', save_file)
+    root.bind('<Control-Shift-S>', saveas_file)
     root.bind('<Control-r>',reopenfunc)
     root.bind('<Control-f>',open_textfinder)
+    root.bind('<Control-h>',open_textfinder_replace)
 
     load_tinfile()
     title_filename=os.path.basename(filename)
     root.title('TinWriter - '+title_filename)
+
+    writerhelper=utils.WriterHelper(editor,tintext)
 
     #获取配置信息
     searchmode=process.config('get_item','general','WriterSearchMode')

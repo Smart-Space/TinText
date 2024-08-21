@@ -143,6 +143,7 @@ def outputmarkdown(e):#导出为Markdown
     tintra=TinTranslator(tintext.tinml)
     try:
         res=tintra.tohtml()
+        # markdown=tintra.tomarkdown()
     except Exception as e:
         show_error(root,'导出失败(html转译失败)',f'Markdown格式导出出现错误：\n{e}')
     finally:
@@ -189,7 +190,7 @@ def __start():
     root.protocol("WM_DELETE_WINDOW", quit)
     root.withdraw()
 
-    root.iconbitmap('./logo.ico')
+    root.iconbitmap('logo.ico')
     root.geometry("700x750")
     root.resizable(width=False, height=False)
     screen_width = root.winfo_screenwidth()

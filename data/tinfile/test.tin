@@ -2,7 +2,7 @@
 |-同目录下的test.tinp为TIN加密文件
 |-密码为：我觉得这不是一个好的密码，但是简单，顶多加上tin⚙️
 
-<title>一级标题|
+<title>一级标题
 <title>二级标题|2
 <title>三级标题|3
 <title>四级标题|4
@@ -56,4 +56,14 @@
 <tb><tb> & <table>|表格起始，表头内容
 <tb></tb> & </table>|表格结束
 </tb>
+<p>
+
+|-<part>第一个隐藏内容
+|-<p>hidden text I - 1
+|-|-<pt>第二个隐藏内容
+|-|-<p>hidden text II
+|-|-</pt>第二个隐藏内容
+|-<p>hidden text I - 2
+|-</part>第一个隐藏内容
+
 <p>

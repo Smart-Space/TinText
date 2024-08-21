@@ -172,53 +172,86 @@ class TinTranslator():
         #tin段落转markdown
         res=[]
         for text in texts:
-            ...
-            # head_mark=text[0]
-            # if head_mark=='!':
-            #     result=self.tinPlink_re.match(text)
-            #     if result:
-            #         url_text,url=result.groups()
-            #         if url_text=='':
-            #             url_text=url
-            #         res.append('[{}]({})'.format(url_text,url))
-            #     else:
-            #         res.append('*'+text[1:])
-            # elif '*' in head_mark:
-            #     res.append('*'+text[1:])
-            # elif '/' in head_mark:
-            #     res.append('/'+text[1:])
-            # elif '_' in head_mark:
-            #     res.append('_'+text[1:])
-            # elif '-' in head_mark:
-            #     res.append('-'+text[1:])
-            # else:
-            #     res.append(text
+            if text=='':
+                continue
+            elif text[0]==' ':
+                res.append(text[1:])
+                continue
+            elif text[0] not in self.tinPmark:
+                res.append(text)
+                continue
+            head_num=0
+            head_mark=text[:5]
+            if '*' in head_mark: head_num+=1
+            if '/' in head_mark: head_num+=1
+            if '_' in head_mark: head_num+=1
+            if '-' in head_mark: head_num+=1
+            _text=text[head_num:]
+            if '!' in head_mark:
+                result=self.tinPlink_re.match(text)
+                if result:
+                    url_text,url=result.groups()
+                    if url_text=='':
+                        url_text=url
+                    _text='[%s](%s)'%(url_text,url)
+                else:
+                    _text=text[head_num:]
+            if '*' in head_mark:
+                _text=f'**{_text}**'
+            if '/' in head_mark:
+                _text=f'*{_text}*'
+            if '_' in head_mark:
+                _text=f'<u>{_text}</u>'
+            if '-' in head_mark:
+                _text=f'~~{_text}~~'
+            res.append(_text)
+        return ' '.join(res)
     
-    def tomarkdown(self):
-        #显然，那些html转markdown的库，有一些规范性的问题，这也是markdown渲染平台的通病，缺乏绝对统一
-        #tin->markdown
-        res=''
-        for tag,kw in self.tinml:
-            if tag == '<title>':
-                text=kw['title']
-                level=int(kw['level'])
-                if level==1:
-                    res+='# '+text+'\n\n'
-                elif level==2:
-                    res+='## '+text+'\n\n'
-                elif level==3:
-                    res+='### '+text+'\n\n'
-                elif level==4:
-                    res+='#### '+text+'\n\n'
-                elif level==5:
-                    res+='##### '+text+'\n\n'
-                elif level==6:
-                    res+='###### '+text+'\n\n'
-            elif tag == '<p>':
-                texts=kw['text']
-                htmltexts=self.__tinP_to_markdown(texts)
-                for htmltext in htmltexts:
-                    res+=str(htmltext)+'\n\n'
-            elif tag == '<lnk>':
-                ...
-
+    # def tomarkdown(self):#nothing
+    #     #显然，那些html转markdown的库，有一些规范性的问题，这也是markdown渲染平台的通病，缺乏绝对统一
+    #     #tin->markdown
+    #     res=''
+    #     for tag,kw in self.tinml:
+    #         if tag == '<title>':
+    #             text=kw['title']
+    #             level=int(kw['level'])
+    #             if level==1:
+    #                 res+='# '+text+'\n\n'
+    #             elif level==2:
+    #                 res+='## '+text+'\n\n'
+    #             elif level==3:
+    #                 res+='### '+text+'\n\n'
+    #             elif level==4:
+    #                 res+='#### '+text+'\n\n'
+    #             elif level==5:
+    #                 res+='##### '+text+'\n\n'
+    #             elif level==6:
+    #                 res+='###### '+text+'\n\n'
+    #         elif tag == '<p>':
+    #             texts=kw['text']
+    #             mdtexts=self.__tinP_to_markdown(texts)
+    #             res+=mdtexts+'\n\n'
+    #         elif tag == '<lnk>':
+    #             text=kw['text']
+    #             url=kw['url']
+    #             res+='[%s](%s)\n\n'%(text,url)
+    #         elif tag == '<sp>':
+    #             res+='---\n\n'
+    #         elif tag == '<note>':
+    #             notes=kw['note']
+    #             for note in notes:
+    #                 res+='> '+note+'\n'
+    #             res+='\n'
+    #         elif tag == '<img>':
+    #             name=kw['filename']
+    #             url=kw['url']
+    #             res+='![%s](%s)'%(name,url)
+    #         elif tag == '<tb>':
+    #             data=kw['data']
+    #             res+='|'+'|'.join(data[0])+'|\n'
+    #             length=len(data[0])
+    #             res+='|'+'|'.join(['---']*length)+'|\n'
+    #             for row in data[1:]:
+    #                 res+='|'+'|'.join(row)+'|\n'
+    #             res+='\n'
+    #     return res

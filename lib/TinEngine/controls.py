@@ -147,3 +147,38 @@ class TinTextTable(TinUI):
         bbox[3]+=2#高度底部留白
         self.config(scrollregion=bbox,width=width,height=height)
     
+
+class TinTextPartAskFrame(ttk.Frame):
+    #TinText<part>询问框
+    def __init__(self,master,name):
+        super().__init__(master.frame)
+        self.master=master
+        self.partname=name
+        self.result=None
+        self.tinui=BasicTinUI(self,bg=master.cget('background'))
+        self.tinui.pack(fill='both',expand=True)
+    
+    def initial(self):
+        w,h=self.master.winfo_width(),self.master.winfo_height()
+        self.place(x=w/2,y=h,width=w,height=60,anchor='s')
+
+        self.tinui.add_paragraph((5,w/2),text=f'是否阅读 {self.partname} ?')
+        bbox=self.tinui.bbox('all')
+        endy=bbox[3]+3
+        self.tinui.add_button2((w/2-2,endy),minwidth=w/2-14,text='YES',command=self.yes,anchor='ne')
+        self.tinui.add_button2((w/2+2,endy),minwidth=w/2-14,text='NO',command=self.no,anchor='nw')
+        bbox=self.tinui.bbox('all')
+        self.tinui.config(scrollregion=bbox)
+
+        self.grab_set()
+        self.wait_window(self)
+
+        return self.result
+
+    def yes(self,e):
+        self.result=True
+        self.destroy()
+    
+    def no(self,e):
+        self.result=False
+        self.destroy()

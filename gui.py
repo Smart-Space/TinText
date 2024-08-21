@@ -5,6 +5,9 @@ TinText的窗口管理
 from lib.structure import Functions
 from lib.gui import reader, writer, maker
 
+import process
+
+
 reader_functions=Functions()
 
 writer_functions=Functions()

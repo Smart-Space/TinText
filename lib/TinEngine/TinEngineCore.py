@@ -1,5 +1,9 @@
 """
 TinEngine核心类
+
+Tin标签增改另附：doc/tinml、data/tinfile/doc、
+tin2html、gui/utils/writerhelper
+
 """
 import tkinter as tk
 from tkinter import ttk
@@ -23,7 +27,8 @@ from tinui import BasicTinUI,show_info,show_success,show_warning,show_error,show
 from .tin2html import TinML
 from .error import NoLinesMode, TagNoMatch, NoLinesMark, AlreadyStartLine
 from .controls import ScrolledText, Balloon, TinTextSeparate, TinTextNote,\
-    TinTextTable
+    TinTextTable, TinTextPartAskFrame
+from .structure import PartTag
 
 
 class TinParser():
@@ -168,6 +173,8 @@ class TinText(ScrolledText):
         self.tag_bind('link','<Leave>',lambda e:self.config(cursor='arrow'))
         #图片，存放图片（ImageTK.PhotoImage）对象的字典
         self.images=dict()
+        #文段块 <part>
+        self.parttag=PartTag()
         
     def __render_err(self,msg,index='end'):
         self.insert(index,msg,'error')
@@ -329,6 +336,7 @@ class TinText(ScrolledText):
                 if i[0]=='"':
                     self.tag_delete(i)
             self.mark_unset()#删除所有标记
+            self.parttag.clear()#删除<part>标记
         #每次渲染都要初始化的标记
         TABLE_TAG=False#是否为表格标记
         for unit in tinconts:
@@ -339,7 +347,17 @@ class TinText(ScrolledText):
                 break
             #解析标记、渲染
             unit_length=len(unit)
-            #解析标记
+            #==========解析标记==========
+            #先行判断
+            if not self.parttag.check():
+                #<part>未被允许阅读
+                if unit[1] not in ('</part>','</pt>'):
+                    #不是<part>结束标签
+                    continue
+                if unit[2] != self.parttag.now():
+                    #不是当前忽略层级（名称）
+                    continue
+            #匹配标签与标记
             match unit[1]:
                 case '<tin>':
                     #<tin>可认为是注释
@@ -364,7 +382,7 @@ class TinText(ScrolledText):
                     #level-标题级别，1~6
                     level=''
                     if unit_length>4:
-                        err=f'[{unit[0]}]<title>标记参数超出限制:\n{"|".join(unit[1:])}\n<title>标题|级别'
+                        err=f'[{unit[0]}]<title>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n<title>标题|级别'
                         self.__render_err(err)
                         break
                     if unit_length>=3:
@@ -384,7 +402,7 @@ class TinText(ScrolledText):
                     #color的值可为空，默认为 #545965
                     color='#545965'
                     if unit_length>3:
-                        err=f'[{unit[0]}]<sp>标记参数超出限制:\n{"|".join(unit[1:])}\n<sp>[颜色]'
+                        err=f'[{unit[0]}]<sp>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n<sp>[颜色]'
                         self.__render_err(err)
                         break
                     if unit_length>=3:
@@ -411,7 +429,7 @@ class TinText(ScrolledText):
                     WEBIMAGE=False#是否为网络图片
                     self.insert('end',' ')
                     if unit_length>5:
-                        err=f'[{unit[0]}]<img>标记参数超出限制:\n{"|".join(unit[1:])}\n<img>文件名|[网址]|[尺寸]'
+                        err=f'[{unit[0]}]<img>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n<img>文件名|[网址]|[尺寸]'
                         self.__render_err(err)
                         break
                     #插入标记，给图片占位，继续渲染
@@ -480,18 +498,18 @@ class TinText(ScrolledText):
                     #本标签自带换行，若不想要换行，则使用<p>的!开头标记
                     description=''
                     if unit_length>5:
-                        err=f'[{unit[0]}]<lnk>标记参数超出限制:\n{"|".join(unit[1:])}\n<lnk>文本|网址|描述'
+                        err=f'[{unit[0]}]<lnk>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n<lnk>文本|网址|描述'
                         self.__render_err(err)
                         break
                     if unit_length==3:
                         #只存在文本，不存在网址，标记无效
-                        err=f'[{unit[0]}]<lnk>标记参数不足:\n{"|".join(unit[1:])}\n<lnk>文本|网址|[描述]'
+                        err=f'[{unit[0]}]<lnk>标记参数不足:\n{unit[1]+"|".join(unit[2:])}\n<lnk>文本|网址|[描述]'
                         self.__render_err(err)
                         break
                     if unit_length>=4:
                         #判断url是否存在
                         if unit[3]=='':
-                            err=f'[{unit[0]}]<lnk>的网址不能为空:\n{"|".join(unit[1:])}\n<lnk>文本|网址|[描述]'
+                            err=f'[{unit[0]}]<lnk>的网址不能为空:\n{unit[1]+"|".join(unit[2:])}\n<lnk>文本|网址|[描述]'
                             self.__render_err(err)
                             break
                         #判断展示文本是否存在，如果不存在，则显示url
@@ -516,18 +534,18 @@ class TinText(ScrolledText):
                     #<stop>time
                     #暂停渲染，time为秒
                     if unit_length>3:
-                        err=f'[{unit[0]}]<stop>标记参数超出限制:\n{"|".join(unit[1:])}\n<stop>时间'
+                        err=f'[{unit[0]}]<stop>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n<stop>时间'
                         self.__render_err(err)
                         break
                     t=unit[2]
                     try:
                         t=float(t)
                     except ValueError:
-                        err=f'[{unit[0]}]<stop>时间错误：\n{"|".join(unit[1:])}\n时间需要整数或小数'
+                        err=f'[{unit[0]}]<stop>时间错误：\n{unit[1]+"|".join(unit[2:])}\n时间需要整数或小数'
                         self.__render_err(err)
                         break
                     if t<=0:
-                        err=f'[{unit[0]}]<stop>时间错误：\n{"|".join(unit[1:])}\n时间需要大于0'
+                        err=f'[{unit[0]}]<stop>时间错误：\n{unit[1]+"|".join(unit[2:])}\n时间需要大于0'
                         self.__render_err(err)
                         break
                     #这类只在tin语言渲染中存在的操作，不参与tinml和html渲染
@@ -540,7 +558,7 @@ class TinText(ScrolledText):
                     if TABLE_TAG:#已经开启了表格渲染
                         this_table_length=len(unit[2:])
                         if this_table_length!=table_length:
-                            err=f'[{unit[0]}]<tb>表格数据长度错误：\n{"|".join(unit[1:])}\n表格数据长度必须与标题行一致'
+                            err=f'[{unit[0]}]<tb>表格数据长度错误：\n{unit[1]+"|".join(unit[2:])}\n表格数据长度必须与标题行一致'
                             self.__render_err(err)
                             break
                         table_data.append(unit[2:])
@@ -548,7 +566,7 @@ class TinText(ScrolledText):
                         TABLE_TAG=True
                         table_length=len(unit[2:])
                         if table_length==1:
-                            err=f'[{unit[0]}]<tb>表格数据至少为两列：\n{"|".join(unit[1:])}\n<tb>title1|title2|[title3]|...'
+                            err=f'[{unit[0]}]<tb>表格数据至少为两列：\n{unit[1]+"|".join(unit[2:])}\n<tb>title1|title2|[title3]|...'
                             self.__render_err(err)
                             break
                         table_data=[(unit[2:]),]
@@ -566,6 +584,37 @@ class TinText(ScrolledText):
                     TABLE_TAG=False
                     self.__render_table(table_data)
                     self.tinml.addtin('<tb>',data=table_data)
+                case '<part>'|'<pt>':
+                    #<part>name
+                    #</part>name
+                    #开启一个文段块，允许读者选择是否进行阅读
+                    if unit_length>3:
+                        err=f'[{unit[0]}]<part>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n<part>名称'
+                        self.__render_err(err)
+                        break
+                    name=unit[2]
+                    if self.parttag.named(name):
+                        err=f'[{unit[0]}]<part>名称错误：\n{unit[1]+"|".join(unit[2:])}\n名称已开启'
+                        self.__render_err(err)
+                        break
+                    self.insert('end','\n'*3)#避免遮挡
+                    ttpaf=TinTextPartAskFrame(self,name)
+                    result=ttpaf.initial()
+                    self.delete('end-3c','end')
+                    self.parttag.edit(name,result)
+                    #TinML特性，不支持转译
+                case '</part>'|'</pt>':
+                    #关闭一个文段块
+                    if unit_length>3:
+                        err=f'[{unit[0]}]</part>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n</part>名称'
+                        self.__render_err(err)
+                        break
+                    name=unit[2]
+                    if not self.parttag.named(name):
+                        err=f'[{unit[0]}]</part>名称错误：\n{unit[1]+"|".join(unit[2:])}\n名称不存在'
+                        self.__render_err(err)
+                        break
+                    self.parttag.delete(name)
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)
