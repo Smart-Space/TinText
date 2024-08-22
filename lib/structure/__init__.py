@@ -1,6 +1,6 @@
 """
 /lib/structure/__init__.py
-TinText的自定义类，用以区分不同类型的数据载体
+TinText的自定义类，用以区分不同类型的数据载体（轻型）
 """
 import configparser
 

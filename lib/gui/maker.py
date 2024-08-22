@@ -8,7 +8,7 @@ import os
 import locale
 
 from tinui import BasicTinUI, TinUIXml, show_info, show_success, show_warning, show_error
-from lib.structure.makeengine import TinpMakeEngine
+from lib.structure.makeengine import TinpMakeEngine, TinxMakeEngine
 
 filename=None
 MAKE_TYPE=None#要生成的文件类型
@@ -31,6 +31,7 @@ def log(text):
     tinui.textbox.config(state='normal')
     tinui.textbox.insert('end', text+'\n')
     tinui.textbox.update()
+    tinui.textbox.see('end')
     tinui.textbox.config(state='disabled')
 
 
@@ -54,11 +55,10 @@ def __gen():
     if MAKE_TYPE==None:
         show_warning(root,'类型缺失','请选择要生成的文件类型')
         return
-    
-    with open(filename,'r',encoding='utf-8') as f:
-        text=f.read()
 
     if MAKE_TYPE=='TINP (加密)':
+        with open(filename,'r',encoding='utf-8') as f:
+            text=f.read()
         #记录文本框log
         log('开始生成TINP文件……')
         tinpmake=TinpMakeEngine(text)
@@ -71,7 +71,7 @@ def __gen():
             log('加密失败，密钥长度必须小于等于文本长度')
             return
         #获取filename所在的文件夹和文件名(无后缀名)
-        filedir=os.path.dirname(filename)+'\\'
+        filedir=os.path.dirname(filename)+'/'
         name=os.path.splitext(os.path.basename(filename))[0]+'.tinp'
         tinpfile=filedir+name
         log('正在保存TINP文件……')
@@ -81,7 +81,20 @@ def __gen():
         log('该TINP解密密码：'+key+'（请妥善保管）')
         #结束记录log
     elif MAKE_TYPE=='TINX (集成)':
-        ...#working
+        #记录文本框log
+        log('开始生成TINX文件……')
+        tinxmake=TinxMakeEngine(filename,log)
+        log('密钥：'+key)
+        log('密钥长度：'+str(len(key)))
+        log('正在加密……')
+        tinxmake.encrypt(key)
+        #获取filename所在的文件夹和文件名(无后缀名)
+        filedir=os.path.dirname(filename)+'/'
+        name=os.path.splitext(os.path.basename(filename))[0]+'.tinx'
+        tinxfile=filedir+name
+        log('TINX文件已保存至：'+tinxfile)
+        log('该TINX解密密码：'+key+'（请妥善保管）')
+        #结束记录log
 
 def gen(e):
     #生成目标类型文件

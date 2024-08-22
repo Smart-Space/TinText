@@ -2,13 +2,15 @@
 /lib/gui/writertools.py
 TinWriter工具
 """
+from lib.gui import maker
 
 
-def initial(_notebook,_editor):
+def initial(_notebook,_editor,_filename):
     #初始化工具页
-    global notebook,editor
+    global notebook, editor, filename
     notebook = _notebook
     editor = _editor
+    filename = _filename
 
     #short cut page
     scpage=notebook.addpage('快捷键',scrollbar=True,cancancel=False)
@@ -22,6 +24,16 @@ def initial(_notebook,_editor):
     ntx=notebook.getvdict()[ntpage][1]
     # ntu=notebook.getvdict()[ntpage][0]# 287 x 345
     load_nt(ntx)
+
+    #tin generate page
+    tgpage=notebook.addpage('生成',cancancel=False)
+    tgx=notebook.getvdict()[tgpage][1]
+    # tgu=notebook.getvdict()[tgpage][0]# 287 x 345
+    load_tg(tgx)
+
+def chagefile(_filename):
+    global filename
+    filename = _filename
 
 
 #快捷键
@@ -89,3 +101,30 @@ def load_nt(ntx):
 </line>
 </tinui>'''
     ntx.loadxml(xml)
+
+
+#生成
+def load_tg(tgx):
+    xml='''<!--TinUIXml编辑-->
+<tinui>
+<line>
+    <button2 text='打开TinMaker' command='self.funcs["openmaker"]'></button2>
+</line>
+<line>
+    <paragraph text='*支持生成 TINP, TINX'></paragraph>
+</line>
+<line>
+    <link text='TIN格式说明' url='https://tintext.smart-space.com.cn/tinml/fileTIN'></link>
+</line>
+<line>
+    <link text='TINP格式说明' url='https://tintext.smart-space.com.cn/tinml/fileTINP'></link>
+</line>
+<line>
+    <link text='TINX格式说明' url='https://tintext.smart-space.com.cn/tinml/fileTINX'></link>
+</line>
+</tinui>'''
+    tgx.funcs['openmaker'] = open_tinmaker
+    tgx.loadxml(xml)
+
+def open_tinmaker(e):
+    maker.initial(filename)

@@ -1,6 +1,6 @@
 ==========1.2==========
 2024-
-*1. 生成tinx、导入tinx
+1. 生成tinx、导入tinx
 2. 清理超过两个月的图片（创建process.cache，clean imgs 清理图片使用子线程）
 3. 支持片段显示<part>(<pt>)
 4. TinWriter简易提示（Alt+p 接受）
@@ -8,7 +8,7 @@
 6. TinWriter 加; 注释 快捷键
 7. TinWriter alt+g 自动生成标签内容
 8. TinWriter工具提供记事本
-*9. TinWriter工具添加TINP、TINX生成入口
+9. TinWriter工具添加TINP、TINX生成入口
 ==========1.1==========
 2024-8-17
 1. 搜索支持大小写、正则匹配、循环搜索

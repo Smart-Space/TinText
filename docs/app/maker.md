@@ -7,6 +7,7 @@ TinText的Tin文件加密与集成应用。
 目前支持的功能
 
 - 基于XOR加密的TINP
+- 基于XOR加密的TINX
 
 ---
 
@@ -23,3 +24,9 @@ TinText的Tin文件加密与集成应用。
 基于TinML-TINP-XOR标准。
 
 会随机生成125~255个字符添加在开头一行。
+
+---
+
+## TINX-XOR
+
+基于TinML-TINX-XOR标准。

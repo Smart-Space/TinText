@@ -46,6 +46,7 @@ def start(_filname='',_reopenfunc=None,_readerroot=None):
         root.deiconify()
         load_tinfile()
         writerhelper.start()
+        writertools.chagefile(filename)
     else:
         __start()
 
@@ -405,7 +406,7 @@ def __start():
     toolsuix=TinUIXml(toolsui)
     toolsuix.loadxml(open('./pages/writer-tools.xml',encoding='utf-8').read())
     toolsbook=toolsuix.tags['ntbook'][-2]#notebook funcs
-    writertools.initial(toolsbook,editor)
+    writertools.initial(toolsbook,editor,filename)
 
     tintext=TinText(root,font='Consolas 13')
     tintext.place(x=750, y=400, width=350, height=350)

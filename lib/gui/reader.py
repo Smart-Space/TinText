@@ -18,7 +18,7 @@ import lib.gui.utils as utils
 from lib.TinEngine import TinText
 from lib.TinEngine.tin2html import TinTranslator
 
-from lib.structure.makeengine import TinpMakeEngine
+from lib.structure.makeengine import TinpMakeEngine, TinxMakeEngine
 
 filename=None
 tintype='TIN'
@@ -62,6 +62,15 @@ def load_tinfile():
         tinpmake=TinpMakeEngine(tinpcont)
         tincont=tinpmake.decrypt(key)
         tintext.thread_render(tincont)
+    elif tintype=='TINX':
+        title_filename=os.path.basename(filename)
+        root.title(f'TinReader - {title_filename}')
+        key=ask_string(root,'TINX文件','请输入TINX文件的密码')
+        if not key:
+            return
+        tinx=TinxMakeEngine(filename,None)
+        tincont=tinx.decrypt(key)
+        tintext.thread_render(tincont)
 
 
 #以下为菜单功能
@@ -79,7 +88,9 @@ def openfile(e):#打开文件
             tintype='TINP'
             load_tinfile()
         elif tinfile.endswith('.tinx'):
-            ...
+            filename=tinfile
+            tintype='TINX'
+            load_tinfile()
 
 def reopenfile(e):#重载当前文件
     load_tinfile()
