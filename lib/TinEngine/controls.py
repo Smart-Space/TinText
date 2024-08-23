@@ -145,6 +145,11 @@ class TinTextTable(TinUI):
         height=bbox[3]-bbox[1]+4
         bbox[2]+=2#宽度右侧留白
         bbox[3]+=2#高度底部留白
+        rel_width=bbox[2]-bbox[0]
+        if rel_width<width:
+            width=rel_width
+            self.vbar.pack_forget()
+            self.hbar.pack_forget()
         self.config(scrollregion=bbox,width=width,height=height)
     
 

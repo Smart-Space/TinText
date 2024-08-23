@@ -48,13 +48,14 @@ class TinTranslator():
             elif text[0] not in self.tinPmark:
                 res.append(text)
             else:
-                head_mark=text[:5]
+                head_mark=text[:6]
                 head_num=0
                 now_p=None#初始化，空
                 if '*' in head_mark: head_num+=1
                 if '/' in head_mark: head_num+=1
                 if '_' in head_mark: head_num+=1
                 if '-' in head_mark: head_num+=1
+                if '=' in head_mark: head_num+=1
                 #开始具体转义html<p>
                 if '!' in head_mark:
                     result=self.tinPlink_re.match(text)
@@ -85,6 +86,11 @@ class TinTranslator():
                         now_p=s(now_p)
                     else:
                         now_p=s(text[head_num:])
+                if '=' in head_mark:
+                    if now_p:
+                        now_p=mark(now_p)
+                    else:
+                        now_p=mark(text[head_num:])
                 res.append(now_p)
         return res
 
@@ -168,44 +174,44 @@ class TinTranslator():
                 _body.add(_table)
         return doc
     
-    def __tinP_to_markdown(self,texts):
-        #tin段落转markdown
-        res=[]
-        for text in texts:
-            if text=='':
-                continue
-            elif text[0]==' ':
-                res.append(text[1:])
-                continue
-            elif text[0] not in self.tinPmark:
-                res.append(text)
-                continue
-            head_num=0
-            head_mark=text[:5]
-            if '*' in head_mark: head_num+=1
-            if '/' in head_mark: head_num+=1
-            if '_' in head_mark: head_num+=1
-            if '-' in head_mark: head_num+=1
-            _text=text[head_num:]
-            if '!' in head_mark:
-                result=self.tinPlink_re.match(text)
-                if result:
-                    url_text,url=result.groups()
-                    if url_text=='':
-                        url_text=url
-                    _text='[%s](%s)'%(url_text,url)
-                else:
-                    _text=text[head_num:]
-            if '*' in head_mark:
-                _text=f'**{_text}**'
-            if '/' in head_mark:
-                _text=f'*{_text}*'
-            if '_' in head_mark:
-                _text=f'<u>{_text}</u>'
-            if '-' in head_mark:
-                _text=f'~~{_text}~~'
-            res.append(_text)
-        return ' '.join(res)
+    # def __tinP_to_markdown(self,texts):
+    #     #tin段落转markdown
+    #     res=[]
+    #     for text in texts:
+    #         if text=='':
+    #             continue
+    #         elif text[0]==' ':
+    #             res.append(text[1:])
+    #             continue
+    #         elif text[0] not in self.tinPmark:
+    #             res.append(text)
+    #             continue
+    #         head_num=0
+    #         head_mark=text[:5]
+    #         if '*' in head_mark: head_num+=1
+    #         if '/' in head_mark: head_num+=1
+    #         if '_' in head_mark: head_num+=1
+    #         if '-' in head_mark: head_num+=1
+    #         _text=text[head_num:]
+    #         if '!' in head_mark:
+    #             result=self.tinPlink_re.match(text)
+    #             if result:
+    #                 url_text,url=result.groups()
+    #                 if url_text=='':
+    #                     url_text=url
+    #                 _text='[%s](%s)'%(url_text,url)
+    #             else:
+    #                 _text=text[head_num:]
+    #         if '*' in head_mark:
+    #             _text=f'**{_text}**'
+    #         if '/' in head_mark:
+    #             _text=f'*{_text}*'
+    #         if '_' in head_mark:
+    #             _text=f'<u>{_text}</u>'
+    #         if '-' in head_mark:
+    #             _text=f'~~{_text}~~'
+    #         res.append(_text)
+    #     return ' '.join(res)
     
     # def tomarkdown(self):#nothing
     #     #显然，那些html转markdown的库，有一些规范性的问题，这也是markdown渲染平台的通病，缺乏绝对统一

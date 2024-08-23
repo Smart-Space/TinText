@@ -12,26 +12,23 @@ Tin标记语言渲染的python.tkinter实现。
 
 ## 依赖
 
-tinui
+tinui - 作者本人开源 tkinter UI 库
 
 requests
 
 PIL(pillow)
 
-dominate
+dominate - html编辑库
 
-html2text
+html2text - markdown转译技术支持库
 
 ---
 
 TODO LIST：
 
-- TinWriter Alt+g 自动生成
-- writertools添加记事本
-- writertools直接进行tinp、tinx生成
 - 导出html的css支持（单独窗口，所有导出都在TinTranslator）
 - `<n>`标签后改为画布内含TinText
 - `<p> = 支持高亮`
-- 导出加密tinx，单独窗口，TinMaker
+- 持续增加标签支持与html转译支持
 
 ……

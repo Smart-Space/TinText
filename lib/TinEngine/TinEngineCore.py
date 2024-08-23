@@ -161,7 +161,7 @@ class TinText(ScrolledText):
         self.tag_config('title6',font=(self.font_family,self.title_size_dict['6']))
         self.tag_bind('title','<Enter>',lambda e:self.config(cursor='xterm'))
         self.tag_bind('title','<Leave>',lambda e:self.config(cursor='arrow'))
-        #普通文本段，各个样式（粗体*、斜体/、下划线_、删除线-、超链接!等）文本段，鼠标为输入样式
+        #普通文本段，各个样式（粗体*、斜体/、下划线_、删除线-、超链接!、=高亮等）文本段，鼠标为输入样式
         self.tag_config('paragraph')#基础样式，每个都有
         self.tag_bind('paragraph','<Enter>',lambda e:self.config(cursor='xterm'))
         self.tag_bind('paragraph','<Leave>',lambda e:self.config(cursor='arrow'))
@@ -193,9 +193,10 @@ class TinText(ScrolledText):
         elif text[0] not in self.paragraph_mark:
             self.insert('end',text,'paragraph')
         else:
-            head_mark=text[:5]
+            head_mark=text[:6]
             head_num=0
             p_tags=[]
+            HIGHLIGHT=False
             if '*' in head_mark:
                 head_num+=1
                 p_tags.append('bold')
@@ -208,6 +209,9 @@ class TinText(ScrolledText):
             if '-' in head_mark:
                 head_num+=1
                 p_tags.append('overstrike')
+            if '=' in head_mark:
+                head_num+=1
+                HIGHLIGHT=True
             if '!' in head_mark:
                 # head_num+=1
                 result=self.paragraph_link_re.match(text)
@@ -234,6 +238,8 @@ class TinText(ScrolledText):
             index=self.index('end-1c')
             tag_name=f'"paragraph-{index}"'
             self.tag_config(tag_name,font=(self.font_family,self.font_size,*p_tags))
+            if HIGHLIGHT:
+                self.tag_config(tag_name,background='#ffff00')
             self.insert('end',text[head_num:],('paragraph',tag_name))
         if newline:
             self.insert('end','\n')
