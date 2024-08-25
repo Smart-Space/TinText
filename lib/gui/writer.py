@@ -408,7 +408,7 @@ def __start():
     toolsbook=toolsuix.tags['ntbook'][-2]#notebook funcs
     writertools.initial(toolsbook,editor,filename)
 
-    tintext=TinText(root,font='Consolas 13')
+    tintext=TinText(root,font='微软雅黑 12')
     tintext.place(x=750, y=400, width=350, height=350)
     tintext.config(state='disabled')
 

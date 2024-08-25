@@ -83,6 +83,9 @@ def load_sc(scx):
     <paragraph text='生成参数&#x0009;alt+g'></paragraph>
 </line>
 <line>
+    <paragraph text='标签说明&#x0009;alt+a'></paragraph>
+</line>
+<line>
     <paragraph text='加 ;&#x0009;alt+;'></paragraph>
 </line>
 <line>

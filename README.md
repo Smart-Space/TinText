@@ -27,8 +27,18 @@ html2text - markdown转译技术支持库
 TODO LIST：
 
 - 导出html的css支持（单独窗口，所有导出都在TinTranslator）
+
 - `<n>`标签后改为画布内含TinText
-- `<p> = 支持高亮`
+
+- 添加`<fl>(<follow>)跟随显示`
+
+- 添加`<ac>`，`<anchor>锚点`定义，`<anchor>#锚点`前往。
+  定义使用文本⚓，锚点使用mark（"anchor-{name}"）和see
+
 - 持续增加标签支持与html转译支持
+
+- gif专门支持显示
+
+- 
 
 ……

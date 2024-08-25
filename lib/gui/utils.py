@@ -5,6 +5,7 @@ TinText界面功能中的杂项功能
 from tkinter import CallWrapper, Text, Toplevel
 import tkinter as tk
 from tkinter import ttk
+import os
 from threading import Thread, Timer
 from time import sleep
 
@@ -293,6 +294,20 @@ class WriterHelper:
     #内部启用多线程，防止阻塞主线程
     ON=True#是否启用提示功能
     infoshow=False#是否显示提示信息
+    docsdir='./data/tinfile/docs/'
+
+    #同名信息
+    rel_tag_name={
+        '<img>':'<img>', '<image>':'<img>',
+        '<lnk>':'<lnk>', '<link>':'<lnk>', '<a>':'<lnk>',
+        '<n>':'<n>',' <note>':'<n>',
+        '<p>':'<p>',
+        '<pt>':'<pt>', '<part>':'<pt>', '</pt>':'</pt>', '</part>':'</pt>',
+        '<sp>':'<sp>','<separate>':'<sp>',
+        '<stop>':'<stop>',
+        '<tb>':'<tb>', '<table>':'<tb>', '</tb>':'</tb>', '</table>':'</tb>',
+        '<title>':'<title>', '<t>':'<title>',
+    }
     
     #alt+g 自动生成的根据
     tags_generate={
@@ -326,6 +341,7 @@ class WriterHelper:
         self.info=tk.Label(self.editor,text='',anchor='n',font=self.editor.cget('font'),bg=self.editor.cget('background'),fg='grey',relief='flat')
         self.editor.bind('<Alt-p>',self.edit)
         self.editor.bind('<Alt-g>',self.generate)
+        self.editor.bind('<Alt-a>',self.get_tag_doc)
         self.start()
     
     def start(self):
@@ -349,8 +365,6 @@ class WriterHelper:
                 elif lastchar=='<':#标签
                     # print('tag')
                     self.showinfo('<>')
-                    # self.editor.insert('insert','<>')
-                    # self.editor.mark_set('insert',f'{index} -1c')
                 elif lastchar=='|':#多行
                     # print('multi tag')
                     self.showinfo('|')
@@ -432,3 +446,21 @@ class WriterHelper:
         else:
             content=self.tags_generate[tag]
             self.editor.insert('insert lineend',content)
+    
+    def get_tag_doc(self,e):
+        #显示标签说明
+        if self.editor.get('insert linestart')!='<':#不是标签
+            return
+        tag_end_pos=self.editor.search('>','insert linestart','insert lineend')
+        if not tag_end_pos:
+            return
+        #获取标签名
+        tag_name=self.editor.get('insert linestart',f'{tag_end_pos} +1c')
+        if tag_name not in self.rel_tag_name:
+            return
+        relname=self.rel_tag_name[tag_name]
+        doc_file=self.docsdir+f'{relname[1:-1]}.tin'
+        if os.path.isfile(doc_file):
+            with open(doc_file,'r',encoding='utf-8') as f:
+                content=f.read()
+            self.about.thread_render(content)
