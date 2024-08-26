@@ -130,6 +130,10 @@ class TinText(ScrolledText):
         #自身样式
         #鼠标为箭头
         self.config(cursor='arrow')
+        #字体
+        self.font=tkfont.Font(self,self.cget('font'))
+        font_size=self.font.cget('size')
+        font_family=self.font.cget('family')
         #==========
         #相关设置
         #标题
@@ -168,13 +172,19 @@ class TinText(ScrolledText):
         #超链接，鼠标为超链接小手样式
         #对于具体的超链接，tag名为"link-index"
         #该标签为自带换行
-        self.tag_config('link',foreground='#006cb4',font=(self.font_family,self.font_size,'underline'))
+        self.tag_config('link',foreground='#006afe',font=(self.font_family,self.font_size,'underline'))
         self.tag_bind('link','<Enter>',lambda e:self.config(cursor='hand2'))
         self.tag_bind('link','<Leave>',lambda e:self.config(cursor='arrow'))
         #图片，存放图片（ImageTK.PhotoImage）对象的字典
         self.images=dict()
         #文段块 <part>
         self.parttag=PartTag()
+        #锚点
+        self.anchor_marks=dict()
+        self.tag_config('anchor',font=('{Segoe Fluent Icons}',font_size),foreground='#006cb4')
+        self.tag_bind('anchor','<Enter>',lambda e:self.config(cursor='hand2'))
+        self.tag_bind('anchor','<Leave>',lambda e:self.config(cursor='arrow'))
+        self.tag_config('anchor-back',background='#006cb4',foreground='#ffffff')
         
     def __render_err(self,msg,index='end'):
         self.insert(index,msg,'error')
@@ -321,6 +331,19 @@ class TinText(ScrolledText):
         self.widgets.append(table)
         self.window_create('end',window=table.frame,align='center')
         self.insert('end','\n')
+    
+    def __render_anchor(self,name):
+        #锚点
+        tag_name=f'"anchor-{name}"'
+        char=self.index('end').split('.')[1]
+        if char=='0':
+            #只检测一次，脱离内容添加锚点是很无聊的
+            index=self.index('end-2c')#跳过结尾换行
+        else:
+            index='end'
+        self.tag_config(tag_name)
+        self.tag_bind(tag_name,'<Button-1>',lambda e:self.see(self.anchor_marks[name]))
+        self.insert(index,'\ue71b',('anchor',tag_name))
 
     def render(self,tintext='<tin>TinText',new=True):
         #渲染tin标记
@@ -343,8 +366,10 @@ class TinText(ScrolledText):
                     self.tag_delete(i)
             self.mark_unset()#删除所有标记
             self.parttag.clear()#删除<part>标记
+            self.anchor_marks.clear()#删除锚点
         #每次渲染都要初始化的标记
         TABLE_TAG=False#是否为表格标记
+        FOLLOW_TAG=False#是否为跟随标记
         for unit in tinconts:
             #unit[0]为行数，unit[1]为标记标签，unit[2]必定存在
             #处理错误
@@ -621,11 +646,37 @@ class TinText(ScrolledText):
                         self.__render_err(err)
                         break
                     self.parttag.delete(name)
+                case '<fl>'|'<follow>':
+                    #<fl>
+                    #开/关跟随显示
+                    #tin标记特性，不支持转译
+                    if FOLLOW_TAG:
+                        FOLLOW_TAG=False
+                    else:
+                        FOLLOW_TAG=True
+                case '<ac>'|'<anchor>':
+                    #<ac>(#)name
+                    #设置锚点、跳转按钮，非单独一行
+                    #如果所在位置为行首，则添加到上一行末 end-1c
+                    #无论存不存在锚点，都能够渲染呈现
+                    if unit_length>3:
+                        err=f'[{unit[0]}]<ac>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n<ac>(#)name'
+                        self.__render_err(err)
+                        break
+                    name=unit[2]
+                    if name.startswith('#'):#前往锚点
+                        self.__render_anchor(name[1:])
+                    else:#定义锚点
+                        index=self.index('end')
+                        self.anchor_marks[name]=index
+                    self.tinml.addtin('<ac>',name=name)
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)
                     break
             self.update()
+            if FOLLOW_TAG:
+                self.see('end')
         wait(img_threadings,return_when=ALL_COMPLETED)
         img_threadings.clear()
         self.config(state='disabled')

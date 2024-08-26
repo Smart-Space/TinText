@@ -172,6 +172,14 @@ class TinTranslator():
                     _table_body.add(_table_row)
                 _table.add(_table_body)
                 _body.add(_table)
+            elif tag == '<ac>':
+                #锚点
+                name=kw['name']
+                if name.startswith('#'):#前往锚点
+                    item=_body[-1]
+                    item.add(a('🔗',href=name))
+                else:#定义锚点
+                    _body.add(a(id=name))
         return doc
     
     # def __tinP_to_markdown(self,texts):

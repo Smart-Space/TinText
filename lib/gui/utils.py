@@ -298,6 +298,8 @@ class WriterHelper:
 
     #同名信息
     rel_tag_name={
+        '<ac>':'<ac>', '<anchor>':'<ac>',
+        '<fl>':'<fl>', '<follow>':'<fl>',
         '<img>':'<img>', '<image>':'<img>',
         '<lnk>':'<lnk>', '<link>':'<lnk>', '<a>':'<lnk>',
         '<n>':'<n>',' <note>':'<n>',
@@ -311,6 +313,10 @@ class WriterHelper:
     
     #alt+g 自动生成的根据
     tags_generate={
+    '<ac>':'(#)name',
+    '<anchor>':'(#)name',
+    '<fl>':'',
+    '<follow>':'',
     '<img>':'name|[url]|[size]',
     '<image>':'name|[url]|[size]',
     '<lnk>':'text|[url]|[description]',
