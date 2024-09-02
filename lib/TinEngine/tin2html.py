@@ -180,6 +180,39 @@ class TinTranslator():
                     item.add(a('🔗',href=name))
                 else:#定义锚点
                     _body.add(a(id=name))
+            elif tag == '<ls>':
+                #无序列表
+                listcontents=kw['content']
+                mainlist=ul()
+                nowlist=mainlist
+                lastlevel=0
+                for level,content in listcontents:
+                    if level==lastlevel:
+                        #如果同一级列表，直接添加列表项
+                        nowlist.add(li(content))
+                    else:
+                        #不同级列表，添加列表项并创建子列表
+                        if level>lastlevel:
+                            #创建子列表
+                            sublist=ul()
+                            nowlist[-1].add(sublist)
+                            nowlist=sublist
+                        elif level<lastlevel:
+                            #返回上级列表
+                            for _ in range(lastlevel-level+2):
+                                nowlist=nowlist.parent
+                        nowlist.add(li(content))
+                    lastlevel=level
+                _body.add(mainlist)
+                # working...
+                # for item in content:
+                #     if item[0]==0:
+                #         mainlist.add(li(item[1]))
+                #     if item[0]==1:
+                #         sublist=ul()
+                #         for subitem in item[1]:
+                #             sublist.add(li(subitem))
+                #         mainlist.add(li('',sublist))
         return doc
     
     # def __tinP_to_markdown(self,texts):

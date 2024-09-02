@@ -246,7 +246,7 @@ def highlight(all=False):
                 if __get_index_char(pos)=='0':#开头
                     editor.tag_add('separate', pos)
                     if line_context.lstrip()=='|':
-                        s=f"{pos}+1l"
+                        s=f"{pos}+1l linestart"
                     else:
                         s=f"{pos} lineend-1c"
                 elif pos==editor.index(line_last):#结尾

@@ -185,6 +185,12 @@ class TinText(ScrolledText):
         self.tag_bind('anchor','<Enter>',lambda e:self.config(cursor='hand2'))
         self.tag_bind('anchor','<Leave>',lambda e:self.config(cursor='arrow'))
         self.tag_config('anchor-back',background='#006cb4',foreground='#ffffff')
+        #无序列表，最多支持四级（三个 | ）
+        self.tag_config('listdot',font=('{Segoe Fluent Icons}',font_size//2))#列表标点
+        self.tag_config('list0',lmargin1=5,lmargin2=20)
+        self.tag_config('list1',lmargin1=20,lmargin2=35)
+        self.tag_config('list2',lmargin1=35,lmargin2=50)
+        self.tag_config('list3',lmargin1=50,lmargin2=60)
         
     def __render_err(self,msg,index='end'):
         self.insert(index,msg,'error')
@@ -344,6 +350,20 @@ class TinText(ScrolledText):
         self.tag_config(tag_name)
         self.tag_bind(tag_name,'<Button-1>',lambda e:self.see(self.anchor_marks[name]))
         self.insert(index,'\ue71b',('anchor',tag_name))
+    
+    def __render_list(self,contents):
+        #列表
+        for item in contents:
+            level=item[0]
+            # \uF127偶数（0开始），\uF126奇数（1开始）
+            #判断层级
+            if level%2==0:
+                dot='\uF127'
+            else:
+                dot='\uF126'
+            content=''.join([' ',item[1],'\n'])
+            self.insert('end',dot,('listdot',f'list{item[0]}'))
+            self.insert('end',content,f'list{item[0]}')
 
     def render(self,tintext='<tin>TinText',new=True):
         #渲染tin标记
@@ -670,6 +690,31 @@ class TinText(ScrolledText):
                         index=self.index('end')
                         self.anchor_marks[name]=index
                     self.tinml.addtin('<ac>',name=name)
+                case '<ls>'|'<list>':
+                    #<ls>(1);
+                    #|(2)
+                    #||(2.1)
+                    #|(3)
+                    #|...|
+                    #列表文本，开头|标记代表层级
+                    #最多支持四级，即三个“|”
+                    list_content=list()
+                    list_count=0#计数，用于返回错误信息行数
+                    for item in unit[2:]:
+                        level=item.count('|')#确定层级数目
+                        content=item.lstrip('|')
+                        if level>3:
+                            err=f'[{unit[0]+list_count}]<ls>层级超出限制：\n{item}\n最多支持四级列表，即三个“|”'
+                            self.__render_err(err)
+                            list_count=-1
+                            break
+                        list_content.append((level,content))
+                        list_count+=1
+                    if list_count==-1:
+                        #出现错误
+                        break
+                    self.__render_list(list_content)
+                    self.tinml.addtin('<ls>',content=list_content)
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)
