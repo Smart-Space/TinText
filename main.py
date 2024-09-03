@@ -10,12 +10,17 @@ Copyright since 2024 Smart-Space <smart-space@qq.com|tsan-zane@outlook.com>
 import platform
 import tkinter as tk
 import sys
+import os
 from multiprocessing import freeze_support, Process, Lock, Pipe
 
 from tinui import BasicTinUI, TinUIXml
 
 import gui
 import process
+
+#获取程序所在目录，设置该目录为工作目录
+rootpath=sys.path[0]
+os.chdir(rootpath)
 
 def quit():
     #允许子窗口调用，完全退出
