@@ -19,7 +19,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 # from tempfile import NamedTemporaryFile
 
-# from tkinterweb.htmlwidgets import HtmlFrame
+from tkinterweb.htmlwidgets import HtmlFrame
 from PIL import Image,ImageTk# require
 import requests
 from tinui import BasicTinUI,show_info,show_success,show_warning,show_error,show_question
@@ -191,6 +191,9 @@ class TinText(ScrolledText):
         self.tag_config('list1',lmargin1=20,lmargin2=35)
         self.tag_config('list2',lmargin1=35,lmargin2=50)
         self.tag_config('list3',lmargin1=50,lmargin2=60)
+        #html css
+        with open('./data/render/blubook.css','r',encoding='utf-8') as f:
+            self.css=f.read()
         
     def __render_err(self,msg,index='end'):
         self.insert(index,msg,'error')
@@ -364,6 +367,20 @@ class TinText(ScrolledText):
             content=''.join([' ',item[1],'\n'])
             self.insert('end',dot,('listdot',f'list{item[0]}'))
             self.insert('end',content,f'list{item[0]}')
+    
+    def __render_html(self,html):
+        #html片段
+        self.update()
+        width=self.winfo_width()
+        height=self.winfo_height()
+        frame=tk.Canvas(self,width=width,height=height/3)
+        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat',width=width)
+        htmlframe.place(x=0,y=0,width=width,height=height/3)
+        htmlframe.load_html(html)
+        htmlframe.add_css(self.css)#添加css样式
+        self.widgets.append(frame)
+        self.window_create('end',window=frame,align='center')
+        self.insert('end','\n')
 
     def render(self,tintext='<tin>TinText',new=True):
         #渲染tin标记
@@ -715,6 +732,15 @@ class TinText(ScrolledText):
                         break
                     self.__render_list(list_content)
                     self.tinml.addtin('<ls>',content=list_content)
+                case '<html>':
+                    #<html>html1;
+                    #|html2
+                    #|...
+                    #|htmln|
+                    #html文本，blubook.css
+                    html_content='\n'.join(unit[2:])
+                    self.__render_html(html_content)
+                    self.tinml.addtin('<html>',content=html_content)
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)

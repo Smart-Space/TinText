@@ -14,13 +14,17 @@ Tin标记语言渲染的python.tkinter实现。
 
 tinui - 作者本人开源 tkinter UI 库
 
-requests
+requests - 网络请求
 
-PIL(pillow)
+PIL(pillow) - 图片处理
 
 dominate - html编辑库
 
 html2text - markdown转译技术支持库
+
+Pygments - 代码片段高亮支持
+
+tkinterweb - 简易超文本支持
 
 ---
 

@@ -1,0 +1,11 @@
+<!--TinUIXml编辑-->
+<tinui>
+<line y='25' anchor='w'>
+    <paragraph text='行数: '></paragraph>
+    <entry width='120'>entry1</entry>
+    <paragraph text='列数: '></paragraph>
+    <entry width='120'>entry2</entry>
+    <paragraph text='           '></paragraph>
+    <button2 text='确定' command='self.funcs["set_table"]'></button2>
+</line>
+</tinui>

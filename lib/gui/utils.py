@@ -289,6 +289,136 @@ class AboutWindow(Toplevel):
         self.deiconify()
 
 
+class WriterHtmlInputer(Toplevel):
+    #TinWriter的html输入窗口
+    def __init__(self,editor):
+        """
+        初始化，创建html输入窗口
+        """
+        super().__init__()
+        self.title('HTML输入')
+        self.iconbitmap('./logo.ico')
+        self.withdraw()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        center_x = int(screen_width / 2 - 500 / 2)
+        center_y = int(screen_height / 2 - 355 / 2)
+        self.geometry(f"500x355+{center_x}+{center_y}")
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.close)
+        
+        self.text=ScrolledText(self,font=('微软雅黑',12),borderwidth=0,relief='flat')
+        self.text.place(x=0,y=0,width=500,height=320)
+
+        self.tinui=BasicTinUI(self)
+        self.tinui.place(x=0,y=320,width=500,height=35)
+        self.tinui.add_paragraph((5,5),text='输入HTML代码以插入TinML格式代码到编辑器中')
+        self.tinui.add_button2((495,15),text='插入至编辑器',anchor='e',command=self.inserthtml)
+        
+        self.editor=editor
+    
+    def inserthtml(self,e):
+        """
+        插入html代码到编辑器中
+        """
+        texts=self.text.get('1.0','end-1c').split('\n')
+        self.editor.insert('insert',f'<html>{texts[0]}')
+        if len(texts)==1:
+            return
+        else:
+            self.editor.insert('insert',';')
+        for text in texts[1:]:
+            self.editor.insert('insert',f'\n|{text}')
+        self.editor.insert('insert','|')
+    
+    def close(self):
+        """
+        关闭窗口
+        """
+        self.withdraw()
+    
+    def show(self):
+        """
+        显示窗口
+        """
+        self.deiconify()
+
+
+class WriterTabInputer(Toplevel):
+    #TinWriter的表格输入窗口
+    def __init__(self,editor):
+        """
+        初始化，创建标签输入窗口
+        """
+        super().__init__()
+        self.title('表格输入')
+        self.iconbitmap('./logo.ico')
+        self.withdraw()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        center_x = int(screen_width / 2 - 500 / 2)
+        center_y = int(screen_height / 2 - 500 / 2)
+        self.geometry(f"500x500+{center_x}+{center_y}")
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.close)
+
+        self.canvas=tk.Canvas(self,borderwidth=0,relief='flat')
+        self.canvas.place(x=0,y=0,width=500,height=450)
+
+        self.tinui=BasicTinUI(self)
+        self.tinui.place(x=0,y=450,width=500,height=50)
+        with open('./pages/writer-tabinputer.xml','r',encoding='utf-8') as f:
+            xml=f.read()
+        self.tinuixml=TinUIXml(self.tinui)
+        self.tinuixml.funcs['set_table']=self.set_table
+        self.tinuixml.loadxml(xml)
+        self.entry1=self.tinuixml.tags['entry1']
+        self.entry2=self.tinuixml.tags['entry2']
+        
+        self.editor=editor
+
+        self.draw_table()
+        
+    def show(self):
+        """
+        显示窗口
+        """
+        self.deiconify()
+    
+    def close(self):
+        """
+        关闭窗口
+        """
+        self.withdraw()
+    
+    def draw_table(self):
+        #绘制表格选择区域
+        #画布界面500x450，每个表格矩形10x10，间隔2
+        #留宽5，留高4
+        #36行 39列
+        y=4
+        x=5
+        self.tabs_location=dict()#表格->位置
+        self.ylocation_tabs=dict()#行位置->表格
+        self.xlocation_tabs=dict()#列位置->表格
+        for line in range(36):
+            self.ylocation_tabs[line+1]=list()
+            for i in range(39):
+                x+=12
+                tab=self.canvas.create_rectangle(x,y,x+10,y+10,fill='grey',width=0)
+                self.tabs_location[tab]=(line+1,i+1)
+                if i+1 not in self.xlocation_tabs:
+                    self.xlocation_tabs[i+1]=list()
+                self.xlocation_tabs[i+1].append(tab)
+                self.ylocation_tabs[line+1].append(tab)
+            y+=12
+            x=5
+    
+    def set_table(self,e):
+        #输出表格
+        ...
+
+
 #TinWriter编辑框提示部件（非控件，而是接管editor和tintext提示文本框）
 class WriterHelper:
     #内部启用多线程，防止阻塞主线程
@@ -300,6 +430,7 @@ class WriterHelper:
     rel_tag_name={
         '<ac>':'<ac>', '<anchor>':'<ac>',
         '<fl>':'<fl>', '<follow>':'<fl>',
+        '<html>':'<html>',
         '<img>':'<img>', '<image>':'<img>',
         '<lnk>':'<lnk>', '<link>':'<lnk>', '<a>':'<lnk>',
         '<ls>':'<ls>', '<list>':'<ls>',
@@ -318,6 +449,7 @@ class WriterHelper:
     '<anchor>':'(#)name',
     '<fl>':'',
     '<follow>':'',
+    '<html>':'html1;\n|html2\n|html3...|',
     '<img>':'name|[url]|[size]',
     '<image>':'name|[url]|[size]',
     '<lnk>':'text|[url]|[description]',

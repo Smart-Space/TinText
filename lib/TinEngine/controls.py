@@ -3,6 +3,9 @@ TinText内部控件
 """
 import tkinter as tk
 from tkinter import ttk
+
+from pygments import highlight
+from pygments import lexers, formatters
 from PIL import Image,ImageTk
 from tinui import BasicTinUI, TinUI, TinUIXml
 

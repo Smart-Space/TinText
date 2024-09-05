@@ -13,6 +13,7 @@ import sys
 import os
 from multiprocessing import freeze_support, Process, Lock, Pipe
 
+import tkinterweb
 from tinui import BasicTinUI, TinUIXml
 
 import gui
@@ -41,6 +42,8 @@ if __name__=='__main__':
 
     root=tk.Tk()
     root.withdraw()
+    html=tkinterweb.HtmlFrame(root,messages_enabled=False)#载入tkhtml框架
+    html.pack(expand=True,fill='both')
     root.after(1,initial)
     # root.iconbitmap('./logo.ico')
     root.mainloop()

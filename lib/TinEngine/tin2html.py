@@ -2,9 +2,11 @@
 tin->html工具类
 """
 import re
+from tempfile import NamedTemporaryFile
 
 import dominate
 from dominate.tags import *
+from dominate.util import raw
 
 class TinML(list):
     """
@@ -204,15 +206,10 @@ class TinTranslator():
                         nowlist.add(li(content))
                     lastlevel=level
                 _body.add(mainlist)
-                # working...
-                # for item in content:
-                #     if item[0]==0:
-                #         mainlist.add(li(item[1]))
-                #     if item[0]==1:
-                #         sublist=ul()
-                #         for subitem in item[1]:
-                #             sublist.add(li(subitem))
-                #         mainlist.add(li('',sublist))
+            elif tag == '<html>':
+                #html
+                content=kw['content']
+                _body.add(raw(content))
         return doc
     
     # def __tinP_to_markdown(self,texts):
