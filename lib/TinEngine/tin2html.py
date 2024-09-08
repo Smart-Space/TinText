@@ -109,8 +109,8 @@ class TinTranslator():
         doc=dominate.document(title=_title)
         doc.head.add(meta(charset='utf-8'))
         if _style!='':
-            doc.head.add(style(_style))
-        doc.head.add(style(self.code_css))
+            doc.head.add(style(raw(_style)))
+        doc.head.add(style(raw(self.code_css)))
         _body=div()
         doc.body.add(_body)
         for tag,kw in self.tinml:
@@ -206,6 +206,29 @@ class TinTranslator():
                         if level>lastlevel:
                             #创建子列表
                             sublist=ul()
+                            nowlist[-1].add(sublist)
+                            nowlist=sublist
+                        elif level<lastlevel:
+                            #返回上级列表
+                            for _ in range(lastlevel-level+2):
+                                nowlist=nowlist.parent
+                        nowlist.add(li(content))
+                    lastlevel=level
+                _body.add(mainlist)
+            elif tag == '<nl>':
+                listcontents=kw['content']
+                mainlist=ol()
+                nowlist=mainlist
+                lastlevel=0
+                for level,content in listcontents:
+                    if level==lastlevel:
+                        #如果同一级列表，直接添加列表项
+                        nowlist.add(li(content))
+                    else:
+                        #不同级列表，添加列表项并创建子列表
+                        if level>lastlevel:
+                            #创建子列表
+                            sublist=ol()
                             nowlist[-1].add(sublist)
                             nowlist=sublist
                         elif level<lastlevel:

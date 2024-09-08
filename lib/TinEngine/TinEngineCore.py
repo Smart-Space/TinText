@@ -376,6 +376,24 @@ class TinText(ScrolledText):
             self.insert('end',dot,('listdot',f'list{item[0]}'))
             self.insert('end',content,f'list{item[0]}')
     
+    def __render_numlist(self,contents):
+        #有序列表
+        levels=[0,0,0,0]#层级
+        lastlevel=1
+        for item in contents:
+            level=item[0]
+            if level<lastlevel:
+                for l in range(level+1,lastlevel+1):
+                    levels[l]=0
+            levels[level]+=1
+            level_text=''
+            for i in levels:
+                if i!=0:
+                    level_text+=str(i)+'.'
+            lastlevel=level
+            content=''.join([level_text,' ',item[1],'\n'])
+            self.insert('end',content,f'list{item[0]}')
+    
     def __render_html(self,html):
         #html片段
         self.update()
@@ -787,6 +805,32 @@ class TinText(ScrolledText):
                         self.__render_err(err)
                         break
                     self.tinml.addtin('<code>',type=code_type,content=code_content)
+                case '<nl>'|'<numlist>':
+                    #<nl>(1);
+                    #|(2)
+                    #||(2.1)
+                    #|(3)
+                    #|...|
+                    #有序列表文本，开头|标记代表层级
+                    #最多支持四级，即三个“|”
+                    numlist_content=list()
+                    numlist_count=0#计数，用于返回错误信息行数
+                    for item in unit[2:]:
+                        level=item.count('|')#确定层级数目
+                        content=item.lstrip('|')
+                        if level>3:
+                            err=f'[{unit[0]+numlist_count}]<nl>层级超出限制：\n{item}\n最多支持四级列表，即三个“|”'
+                            self.__render_err(err)
+                            numlist_count=-1
+                            break
+                        numlist_content.append((level,content))
+                        numlist_count+=1
+                    if numlist_count==-1:
+                        #出现错误
+                        break
+                    self.__render_numlist(numlist_content)
+                    self.tinml.addtin('<nl>',content=numlist_content)
+
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)

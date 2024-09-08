@@ -3,7 +3,7 @@
   <head>
     <title>TinText</title>
     <meta charset="utf-8">
-    <style>@charset &quot;UTF-8&quot;;
+    <style>@charset "UTF-8";
 
 /*** Color setting ***/
 :root {
@@ -65,30 +65,20 @@ img {
 
 /****** ul ol Style ******/
 
-ul&gt;li&gt;ul&gt;li {
-  list-style-type: circle;
-}
-
-ul&gt;li&gt;ul&gt;li&gt;ul&gt;li {
-  list-style-type: square;
-}
-
-ol,
-ul {
-  padding-left: 4rem;
+ol {
+  padding-left: 2rem;
   line-height: 2;
+  list-style-type:none;
+  counter-reset:list;
+}
+ol li:before {
+    counter-increment:list;
+    content: counters(list, ".") ". ";
 }
 
-ol&gt;li {
-  list-style-type: decimal
-}
-
-ol&gt;li&gt;ol&gt;li {
-  list-style-type: lower-alpha
-}
-
-ol&gt;li&gt;ol&gt;li&gt;ol&gt;li {
-  list-style-type: lower-roman
+ul {
+  padding-left: 2rem;
+  line-height: 2;
 }
 
 /****** Table Style ******/
@@ -152,7 +142,7 @@ pre.md-meta-block {
 /****** Global Text ******/
 p {
   font-size: 16px;
-  font-family: &quot;Glow Sans SC&quot;, -apple-system, sans-serif;
+  font-family: "Glow Sans SC", -apple-system, sans-serif;
   font-weight: 500;
   line-height: 1.6;
   font-style: normal;
@@ -490,7 +480,7 @@ tt {
   border-top: 1px solid #19191c;
 }
 
-#typora-sidebar #ty-sidebar-footer #sidebar-files-menu li&gt;a:hover {
+#typora-sidebar #ty-sidebar-footer #sidebar-files-menu li>a:hover {
   background: #021d43;
 }
 
@@ -542,14 +532,14 @@ blockquote::before {
   padding-left: 0;
 }
 
-.md-task-list-item&gt;input {
+.md-task-list-item>input {
   top: -0.2rem;
   margin-left: -1.6rem;
   margin-top: calc(1rem + 1px);
   -webkit-appearance: initial;
 }
 
-.md-task-list-item&gt;input:before {
+.md-task-list-item>input:before {
   border: 1px solid#0185ff;
   border-radius: 1rem;
   width: 1rem;
@@ -560,19 +550,19 @@ blockquote::before {
   display: block;
 }
 
-.md-task-list-item&gt;input:checked:before,
-.md-task-list-item&gt;input[checked]:before {
+.md-task-list-item>input:checked:before,
+.md-task-list-item>input[checked]:before {
   background: #0185ff;
   border-width: 1px;
   transition: background-color 200ms ease-in-out;
 }
 
-.md-task-list-item&gt;input:checked:after,
-.md-task-list-item&gt;input[checked]:after {
+.md-task-list-item>input:checked:after,
+.md-task-list-item>input[checked]:after {
   opacity: 1;
 }
 
-.md-task-list-item&gt;input:after {
+.md-task-list-item>input:after {
   opacity: 1;
   -webkit-transition: opacity 0.05s ease-in-out;
   -moz-transition: opacity 0.05s ease-in-out;
@@ -592,401 +582,6 @@ blockquote::before {
   opacity: 0;
 }
 
-/****** Source style ******/
-.typora-sourceview-on #write {
-  display: none
-}
-
-#typora-source {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: inherit;
-  padding-right: 0;
-  padding-left: 0;
-  padding-top: 0;
-  display: none;
-  line-height: 1.5
-}
-
-.mac-seamless-mode #typora-source {
-  top: 20px
-}
-
-#typora-source .CodeMirror {
-  height: 100%;
-  overflow-x: hidden
-}
-
-#typora-source .CodeMirror-gutters {
-  left: initial !important
-}
-
-#typora-source .CodeMirror-lines {
-  padding-top: 30px;
-  padding-bottom: 60px;
-  padding-left: 60px;
-  padding-right: 30px;
-  max-width: 800px;
-  margin: 0 auto
-}
-
-#typora-source .CodeMirror-wrap .CodeMirror-scroll {
-  overflow-y: auto
-}
-
-.CodeMirror-activeline .cm-trailing-space-new-line:after {
-  opacity: .6
-}
-
-.CodeMirror-activeline .cm-starttab .cm-tab:after {
-  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAMCAYAAAAkuj5RAAAAAXNSR0IArs4c6QAAAGFJREFUSMft1LsRQFAQheHPowAKoACx3IgEKtaEHujDjORSgWTH/ZOdnZOcM/sgk/kFFWY0qV8foQwS4MKBCS3qR6ixBJvElOobYAtivseIE120FaowJPN75GMu8j/LfMwNjh4HUpwg4LUAAAAASUVORK5CYII=);
-  background-position: right;
-  background-repeat: no-repeat;
-  width: 100%;
-  opacity: 1
-}
-
-.CodeMirror-activeline .cm-startspace:after,
-.CodeMirror-activeline .cm-trailing-space-new-line:after {
-  opacity: .2
-}
-
-.cm-s-inner .CodeMirror-vscrollbar {
-  display: none !important
-}
-
-#typora-source .CodeMirror-gutter-wrapper {
-  position: absolute !important;
-  left: -6ch !important;
-  min-width: 4ch !important;
-  text-align: right;
-  font-family: monospace;
-  font-size: .8rem;
-  margin-top: .1rem;
-  display: inline-block;
-  opacity: .6
-}
-
-#typora-source .CodeMirror-linenumber {
-  width: auto !important;
-  visibility: hidden
-}
-
-#typora-source .CodeMirror-sizer {
-  margin-left: 0 !important
-}
-
-#typora-source .CodeMirror-gutter {
-  min-width: 4ch !important
-}
-
-#typora-source .CodeMirror-activeline .CodeMirror-linenumber,
-#typora-source .CodeMirror-linenumber.CodeMirror-linenumber-show {
-  visibility: visible
-}
-
-#typora-source .CodeMirror-code&gt;.CodeMirror-activeline::before,
-#typora-source .CodeMirror-code&gt;:first-child::before,
-#typora-source .CodeMirror-code&gt;:last-child::before,
-#typora-source .CodeMirror-code&gt;:nth-child(10n)::before {
-  visibility: visible
-}
-
-.cm-s-typora-default .cm-header1:not(.cm-atom):not(.cm-s-inner) {
-  font-size: 2.2rem;
-}
-
-.cm-s-typora-default .cm-header2:not(.cm-atom):not(.cm-s-inner) {
-  font-size: 2rem;
-}
-
-.cm-s-typora-default .cm-header3:not(.cm-atom):not(.cm-s-inner) {
-  font-size: 1.6rem;
-}
-
-.cm-s-typora-default .cm-header4:not(.cm-atom):not(.cm-s-inner) {
-  font-size: 1.4rem;
-}
-
-.cm-s-typora-default .cm-header5:not(.cm-atom):not(.cm-s-inner) {
-  font-size: 1.2rem;
-}
-
-.cm-s-typora-default .cm-header6:not(.cm-atom):not(.cm-s-inner) {
-  font-size: 1.2rem;
-}
-
-.cm-s-typora-default .cm-header,
-.cm-s-typora-default .cm-property {
-  color: #183055 !important;
-}
-
-pre.CodeMirror-line {
-  page-break-inside: avoid;
-}
-
-/****** Code style ******/
-code {
-  font-size: .9rem;
-  /*   color: #333333; /*  #537AA2;  
-      border: 1px solid #d0d0d0;  */
-  font-family: 'Cascadia Code', Consolas, 'Noto Sans SC', 'Courier New', monospace;
-  padding: .2rem .2rem;
-  border-radius: 3px;
-  background: #f5f7f9 !important;
-  display: inline;
-  vertical-align: bottom;
-  line-height: 1.8;
-}
-
-code,
-pre {
-  font-size: 95% !important;
-  font-weight: normal;
-  font-family: 'Cascadia Code', Consolas, 'Noto Sans SC', 'Courier New', monospace;
-  -webkit-font-smoothing: initial;
-  -moz-osx-font-smoothing: initial
-}
-
-/****** The flow chart ******/
-pre.md-fences[lang=sequence].md-focus .md-diagram-panel,
-pre.md-fences[lang=flow].md-focus .md-diagram-panel,
-pre.md-fences[lang=mermaid].md-focus .md-diagram-panel {
-  position: -webkit-sticky;
-  border: 1px solid #777;
-  border-radius: 6px;
-  margin-top: 6px;
-}
-
-.code-tooltip .ty-input,
-.code-tooltip input {
-  background-color: transparent;
-  border: 0;
-  margin-top: 2px;
-  margin-bottom: 2px;
-  margin-left: 0;
-  margin-right: 0;
-  border-radius: 3px;
-  text-align: center;
-  min-width: 140px;
-  display: inline-block;
-  padding: 0 4px;
-  line-height: 1.5;
-  color: #fff;
-}
-
-.enable-diagrams pre.md-fences[lang=sequence] .code-tooltip,
-.enable-diagrams pre.md-fences[lang=flow] .code-tooltip,
-.enable-diagrams pre.md-fences[lang=mermaid] .code-tooltip {
-  right: 8px;
-  bottom: -2.2em;
-}
-
-/****** Windows contral ******/
-.megamenu-menu-list li a.active,
-.megamenu-menu-list:not(.saved) li a:hover {
-  background-color: #285e8e;
-}
-
-/****** Fix ******/
-.md-tab {
-  display: inline-block;
-  white-space: pre;
-  font-family: initial;
-}
-
-div.md-mathjax-preview.mathjax-candidate.mathjax-candidate-show {
-  background-color: white !important;
-  -webkit-user-modify: read-only;
-}
-
-.mathjax-candidate {
-  text-align: center;
-  padding-top: inherit;
-  overflow-x: auto;
-  padding: 10px 0;
-  background-color: white;
-}
-
-input {
-  font-weight: bold;
-  background-color: inherit;
-  background-color: var(--bg-color);
-  color: var(--text-color) !important;
-}
-
-#write input {
-  transform: translateY(-6.5px);
-}
-
-.task-list {
-  padding-left: 0;
-}
-
-.md-task-list-item&gt;input {
-  top: -0.2rem;
-  margin-left: -1.6rem;
-  margin-top: calc(1rem + 1px);
-}
-
-.auto-suggest-container li {
-  padding: 1px;
-  padding-left: 10px;
-  padding-right: 10px;
-  cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
-  min-width: 124px;
-  position: relative;
-  line-height: 1.4;
-}
-
-.auto-suggest-container {
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  box-shadow: 0 0 1px rgba(0, 0, 0, .1);
-  position: fixed;
-  background-color: #fff;
-  background-color: var(--bg-color);
-  z-index: 10;
-  font-size: .9rem;
-  display: none;
-  padding: 4px 6px 4px 6px;
-  line-height: 20px;
-}
-
-/****** Code highlight ******/
-.cm-s-inner .CodeMirror-guttermarker,
-.cm-s-inner .CodeMirror-guttermarker-subtle,
-.cm-s-inner .CodeMirror-linenumber {
-  color: #596774;
-}
-
-.cm-s-inner .CodeMirror-cursor {
-  border-left: 1px solid #f8f8f0;
-}
-
-.cm-s-inner div.CodeMirror-selected {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.cm-s-inner.CodeMirror-focused div.CodeMirror-selected {
-  background: rgba(255, 255, 255, 0.10);
-}
-
-.cm-s-inner .CodeMirror-line::selection,
-.cm-s-inner .CodeMirror-line&gt;span::selection,
-.cm-s-inner .CodeMirror-line&gt;span&gt;span::selection {
-  background: rgba(255, 255, 255, 0.10);
-}
-
-.cm-s-inner .CodeMirror-line::-moz-selection,
-.cm-s-inner .CodeMirror-line&gt;span::-moz-selection,
-.cm-s-inner .CodeMirror-line&gt;span&gt;span::-moz-selection {
-  background: rgba(255, 255, 255, 0.10);
-}
-
-.cm-s-inner .CodeMirror-activeline-background {
-  background: rgba(0, 0, 0, 0);
-}
-
-.cm-s-inner .cm-keyword {
-  color: rgba(199, 146, 234, 1);
-}
-
-.cm-s-inner .cm-operator {
-  color: rgba(233, 237, 237, 1);
-}
-
-.cm-s-inner .cm-variable-2 {
-  color: #80CBC4;
-}
-
-.cm-s-inner .cm-variable-3 {
-  color: #82B1FF;
-}
-
-.cm-s-inner .cm-builtin {
-  color: #DECB6B;
-}
-
-.cm-s-inner .cm-atom {
-  color: #F77669;
-}
-
-.cm-s-inner .cm-number {
-  color: #F77669;
-}
-
-.cm-s-inner .cm-def {
-  color: rgba(233, 237, 237, 1);
-}
-
-.cm-s-inner .cm-string {
-  color: #C3E88D;
-}
-
-.cm-s-inner .cm-string-2 {
-  color: #80CBC4;
-}
-
-.cm-s-inner .cm-comment {
-  color: #aebcc2;
-}
-
-.cm-s-inner .cm-variable {
-  color: #82B1FF;
-}
-
-.cm-s-inner .cm-tag {
-  color: #80CBC4;
-}
-
-.cm-s-inner .cm-meta {
-  color: #80CBC4;
-}
-
-.cm-s-inner .cm-attribute {
-  color: #FFCB6B;
-}
-
-.cm-s-inner .cm-property {
-  color: #80CBAE;
-}
-
-.cm-s-inner .cm-qualifier {
-  color: #DECB6B;
-}
-
-.cm-s-inner .cm-variable-3 {
-  color: #DECB6B;
-}
-
-.cm-s-inner .cm-tag {
-  color: rgba(255, 83, 112, 1);
-}
-
-.cm-s-inner .cm-error {
-  color: rgba(255, 255, 255, 1.0);
-  background-color: #EC5F67;
-}
-
-.cm-s-inner .CodeMirror-matchingbracket {
-  text-decoration: underline;
-  color: white !important;
-}
-
-.cm-s-inner .cm-header,
-.cm-s-inner.cm-header {
-  color: #334EEA;
-}
-
-.md-fences .code-tooltip {
-  background-color: #263238;
-}
 
 div{
 width: 50%;
@@ -1134,6 +729,24 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
           <li>第三个</li>
         </li>
       </ul>
+      <p><br></p>
+      <ol>
+        <li>这是第一个</li>
+        <li>第二个
+          <ol>
+            <li>第二-1个
+              <ol>
+                <li>第二-1-1个
+                  <ol>
+                    <li>第二-1-1-1个</li>
+                  </ol>
+                </li>
+              </ol>
+            </li>
+          </ol>
+          <li>第三个</li>
+        </li>
+      </ol>
       <p><br></p>
       <p>TinML中支持显示html。在TinText应用中，渲染的html样式为 
         <u>.\data\render\blubook.css</u> 的配置样式。但是，不建议在TinML使用HTML渲染常规文本。
