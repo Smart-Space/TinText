@@ -329,7 +329,7 @@ class WriterHtmlInputer(Toplevel):
             self.editor.insert('insert',';')
         for text in texts[1:]:
             self.editor.insert('insert',f'\n|{text}')
-        self.editor.insert('insert','|')
+        self.editor.insert('insert','|\n')
     
     def close(self):
         """
@@ -372,8 +372,8 @@ class WriterTabInputer(Toplevel):
         self.tinuixml=TinUIXml(self.tinui)
         self.tinuixml.funcs['set_table']=self.set_table
         self.tinuixml.loadxml(xml)
-        self.entry1=self.tinuixml.tags['entry1']
-        self.entry2=self.tinuixml.tags['entry2']
+        self.entry1=self.tinuixml.tags['entry1'][0]#entry widget
+        self.entry2=self.tinuixml.tags['entry2'][0]
         
         self.editor=editor
 
@@ -411,12 +411,103 @@ class WriterTabInputer(Toplevel):
                     self.xlocation_tabs[i+1]=list()
                 self.xlocation_tabs[i+1].append(tab)
                 self.ylocation_tabs[line+1].append(tab)
+                self.canvas.tag_bind(tab,'<Enter>',lambda e,item=tab:self.mouse_in(item))
+                self.canvas.tag_bind(tab,'<Leave>',lambda e,item=tab:self.mouse_out(item))
+                self.canvas.tag_bind(tab,'<Button-1>',lambda e,item=tab:self.mouse_click(item))
             y+=12
             x=5
     
+    def mouse_in(self,tab):
+        #鼠标在表格上
+        x,y=self.tabs_location[tab]
+        for line in range(y):
+            for tab in self.xlocation_tabs[line+1][:x]:
+                self.canvas.itemconfig(tab,fill='lightgrey')
+    
+    def mouse_out(self,tab):
+        #鼠标离开表格上
+        x,y=self.tabs_location[tab]
+        for line in range(y):
+            for tab in self.xlocation_tabs[line+1][:x]:
+                self.canvas.itemconfig(tab,fill='grey')
+
+    def mouse_click(self,tab):
+        #鼠标点击表格
+        x,y=self.tabs_location[tab]
+        self.entry1.delete(0,'end')
+        self.entry1.insert(0,str(x))
+        self.entry2.delete(0,'end')
+        self.entry2.insert(0,str(y))
+    
     def set_table(self,e):
         #输出表格
-        ...
+        xnum=self.entry1.get()
+        ynum=self.entry2.get()
+        try:
+            xnum=int(xnum)
+            ynum=int(ynum)
+        except:
+            return
+        for _ in range(ynum):#行数
+            self.editor.insert('insert',f'<tb>{"|".join([" "]*xnum)}\n')
+        self.editor.insert('insert',f'</tb>\n')
+
+
+class WriterCodeInputer(Toplevel):
+    #TinWriter的代码输入窗口
+    def __init__(self,editor):
+        """
+        初始化，创建标签输入窗口
+        """
+        super().__init__()
+        self.title('代码输入')
+        self.iconbitmap('./logo.ico')
+        self.withdraw()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        center_x = int(screen_width / 2 - 500 / 2)
+        center_y = int(screen_height / 2 - 500 / 2)
+        self.geometry(f"500x500+{center_x}+{center_y}")
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.close)
+
+        self.text=ScrolledText(self,font=('微软雅黑',12),borderwidth=0,relief='flat')
+        self.text.place(x=0,y=0,width=500,height=460)
+
+        self.tinui=BasicTinUI(self)
+        self.tinui.place(x=0,y=460,width=500,height=40)
+        with open('./pages/writer-codeinputer.xml','r',encoding='utf-8') as f:
+            xml=f.read()
+        self.tinuixml=TinUIXml(self.tinui)
+        self.tinuixml.funcs['set_code']=self.set_code
+        self.tinuixml.loadxml(xml)
+        self.entry=self.tinuixml.tags['entry'][0]
+
+        self.editor=editor
+    
+    def set_code(self,e):
+        #插入TinML <code>
+        code_type=self.entry.get()
+        if code_type=='':
+            #代码名称为空，不通过
+            return
+        self.editor.insert('insert',f'<code>{code_type};')
+        codes=self.text.get('1.0','end-1c')
+        for code in codes.split('\n'):
+            self.editor.insert('insert',f'\n|{code.replace("|","%VEB%")}')
+        self.editor.insert('insert','|')
+    
+    def show(self):
+        """
+        显示窗口
+        """
+        self.deiconify()
+    
+    def close(self):
+        """
+        关闭窗口
+        """
+        self.withdraw()
 
 
 #TinWriter编辑框提示部件（非控件，而是接管editor和tintext提示文本框）
@@ -429,6 +520,7 @@ class WriterHelper:
     #同名信息
     rel_tag_name={
         '<ac>':'<ac>', '<anchor>':'<ac>',
+        '<code>':'<code>',
         '<fl>':'<fl>', '<follow>':'<fl>',
         '<html>':'<html>',
         '<img>':'<img>', '<image>':'<img>',
@@ -447,6 +539,7 @@ class WriterHelper:
     tags_generate={
     '<ac>':'(#)name',
     '<anchor>':'(#)name',
+    '<code>':'type;\n|code1\n|code2\n|code3...|',
     '<fl>':'',
     '<follow>':'',
     '<html>':'html1;\n|html2\n|html3...|',

@@ -89,6 +89,21 @@
 <p>TinML中支持显示html。在TinText应用中，渲染的html样式为 |_.\data\render\blubook.css|  的配置样式。但是，不建议在TinML使用HTML渲染常规文本。
 <html><p>这是在&lt;html&gt;中渲染的内容。</p>;
 |<p>直接使用&lt;html&gt;标签即可，每行参数均会被记为<span style="background-color: #f1c40f;">一块</span>HTML文本，且应符合HTML规范。</p>|
+<p>
+
+<p>TinML支持显示代码片段，支持的语言类型应为小写全称。在TinText应用中，渲染的样式来自 |_.\data\render\code.css|，且支持Pygments中的语言。
+<code>python;
+|from tkinter import *
+|
+|root=Tk()
+|root.mainloop()|
+<p>上面的代码在TinML编写为：
+<code>tin;
+|<code>python;
+|%VEB%from tkinter import *
+|%VEB%
+|%VEB%root=Tk()
+|%VEB%root.mainloop()%VEB%|
 
 <p>
 <p>返回顶部⏫

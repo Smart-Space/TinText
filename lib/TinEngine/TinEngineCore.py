@@ -19,9 +19,12 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 # from tempfile import NamedTemporaryFile
 
-from tkinterweb.htmlwidgets import HtmlFrame
+from tkinterweb.htmlwidgets import HtmlFrame, HtmlLabel
 from PIL import Image,ImageTk# require
 import requests
+from pygments.lexers import get_lexer_by_name, get_all_lexers
+from pygments.formatters import HtmlFormatter
+from pygments import highlight
 from tinui import BasicTinUI,show_info,show_success,show_warning,show_error,show_question
 
 from .tin2html import TinML
@@ -29,6 +32,7 @@ from .error import NoLinesMode, TagNoMatch, NoLinesMark, AlreadyStartLine
 from .controls import ScrolledText, Balloon, TinTextSeparate, TinTextNote,\
     TinTextTable, TinTextPartAskFrame
 from .structure import PartTag
+from .tinlexer import TinLexer
 
 
 class TinParser():
@@ -66,7 +70,7 @@ class TinParser():
                 yield TagNoMatch(err)
                 break
             unit=unit.groups()
-            if unit[1].endswith(';'):#开启多行表达
+            if unit[1].endswith(';') and unit[0].startswith('<'):#开启多行表达
                 if TAGATTR:
                     err=f"重复使用多行表达标记[{line_count}]:\n{line}\n上方标签的多行表达未结束"
                     yield AlreadyStartLine(err)
@@ -89,11 +93,11 @@ class TinParser():
                     break
                 if unit[1].endswith('|'):#多行表达结束
                     TAGATTR=False
-                    tagattrs.append(unit[1][:-1])
+                    tagattrs.append(unit[1][:-1].replace('%VEB%','|'))
                     yield tuple(tagattrs)
                     del tagattrs
                     continue
-                tagattrs.append(unit[1])
+                tagattrs.append(unit[1].replace('%VEB%','|'))
                 continue
             attrs=unit[1].split('|')
             rattrs=list()#result attrs
@@ -149,7 +153,7 @@ class TinText(ScrolledText):
             '6':self.font_size+2
         }
         #文本块开头标记
-        self.paragraph_mark=('*','/','_','-','!')
+        self.paragraph_mark=('*','/','_','-','!','=')
         self.paragraph_link_re=re.compile('.*?!\[(.*?)\]\((..*?)\)')
         #==========
         #基本样式
@@ -194,6 +198,10 @@ class TinText(ScrolledText):
         #html css
         with open('./data/render/blubook.css','r',encoding='utf-8') as f:
             self.css=f.read()
+        #code css
+        with open('./data/render/code.css','r',encoding='utf-8') as f:
+            self.code_css=f.read()
+        self.all_lexers=get_all_lexers()
         
     def __render_err(self,msg,index='end'):
         self.insert(index,msg,'error')
@@ -373,14 +381,37 @@ class TinText(ScrolledText):
         self.update()
         width=self.winfo_width()
         height=self.winfo_height()
-        frame=tk.Canvas(self,width=width,height=height/3)
-        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat',width=width)
-        htmlframe.place(x=0,y=0,width=width,height=height/3)
+        frame=tk.Canvas(self,width=width,height=height*2/5,highlightthickness=0,relief='flat',background=self.cget('background'))
+        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat')
+        htmlframe.place(x=0,y=0,width=width,height=height*2/5)
         htmlframe.load_html(html)
         htmlframe.add_css(self.css)#添加css样式
         self.widgets.append(frame)
         self.window_create('end',window=frame,align='center')
         self.insert('end','\n')
+    
+    def __render_code(self,name,code):
+        #代码片段
+        if name=='tin':
+            lexer=TinLexer()
+        else:
+            try:
+                lexer=get_lexer_by_name(name)
+            except:
+                return 0
+        self.update()
+        width=self.winfo_width()
+        height=self.winfo_height()
+        frame=tk.Canvas(self,width=width,height=height*2/5,highlightthickness=0,relief='flat',background=self.cget('background'))
+        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat',borderwidth=0)
+        htmlframe.place(x=0,y=0,width=width,height=height*2/5)
+        html=highlight(code,lexer,HtmlFormatter())
+        htmlframe.load_html(html)
+        htmlframe.add_css(self.code_css)#添加css样式
+        self.widgets.append(frame)
+        self.window_create('end',window=frame,align='center')
+        self.insert('end','\n')
+        return 1
 
     def render(self,tintext='<tin>TinText',new=True):
         #渲染tin标记
@@ -741,6 +772,21 @@ class TinText(ScrolledText):
                     html_content='\n'.join(unit[2:])
                     self.__render_html(html_content)
                     self.tinml.addtin('<html>',content=html_content)
+                case '<code>':
+                    #<code>type;
+                    #|code1
+                    #|code2
+                    #|...
+                    #|coden|
+                    #代码文本，支持转译
+                    code_type=unit[2]
+                    code_content='\n'.join(unit[3:])
+                    state=self.__render_code(code_type,code_content)
+                    if state==0:
+                        err=f'[{unit[0]}]<code>类型错误：\n{unit[2]}\n代码类型不支持'
+                        self.__render_err(err)
+                        break
+                    self.tinml.addtin('<code>',type=code_type,content=code_content)
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)

@@ -8,6 +8,11 @@ import dominate
 from dominate.tags import *
 from dominate.util import raw
 
+from .tinlexer import TinLexer
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+from pygments import highlight
+
 class TinML(list):
     """
     tin->html的中间工具
@@ -38,6 +43,9 @@ class TinTranslator():
         
         self.tinPmark=('*','/','_','-','!')
         self.tinPlink_re=re.compile('.*?!\[(.*?)\]\((..*?)\)')
+
+        with open('./data/render/code.css','r',encoding='utf-8') as f:
+            self.code_css=f.read()
     
     def __tinP_to_html(self,texts):
         #tin段落转html段落
@@ -102,6 +110,7 @@ class TinTranslator():
         doc.head.add(meta(charset='utf-8'))
         if _style!='':
             doc.head.add(style(_style))
+        doc.head.add(style(self.code_css))
         _body=div()
         doc.body.add(_body)
         for tag,kw in self.tinml:
@@ -162,8 +171,8 @@ class TinTranslator():
                 _table=table()
                 _table_head=thead()
                 _table_row=tr()
-                for head in data[0]:#表头
-                    _table_row.add(th(head))
+                for _head in data[0]:#表头
+                    _table_row.add(th(_head))
                 _table_head.add(_table_row)
                 _table.add(_table_head)
                 _table_body=tbody()
@@ -210,6 +219,16 @@ class TinTranslator():
                 #html
                 content=kw['content']
                 _body.add(raw(content))
+            elif tag == '<code>':
+                #代码
+                code_type=kw['type']
+                code_content=kw['content']
+                if code_type=='tin':
+                    lexer=TinLexer()
+                else:
+                    lexer=get_lexer_by_name(code_type)
+                html_content=highlight(code_content,lexer,HtmlFormatter())
+                _body.add(raw(html_content))
         return doc
     
     # def __tinP_to_markdown(self,texts):

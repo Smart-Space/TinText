@@ -135,6 +135,7 @@ def outputhtml(e):#导出为HTML
             f.write(res.render())
         show_success(root,'导出成功','已在指定位置生成HTML文件')
     except Exception as e:
+        print(e)
         show_error(root,'导出失败',f'HTML格式导出出现错误：\n{e}')
     finally:
         root.config(cursor='arrow')

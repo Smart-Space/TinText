@@ -165,6 +165,9 @@ def open_htmlinputer(e):
 def open_tabinputer(e):
     #打开表格输入器
     tabinputer.show()
+def open_codeinputer(e):
+    #打开代码输入器
+    codeinputer.show()
 
 
 def on_text_change(e):
@@ -348,7 +351,7 @@ def __start():
     #加载窗口
     global root, editor, tintext, peert, already,\
          textfinder, writerhelper, writerhtmlinputer,\
-            tabinputer
+            tabinputer, codeinputer
 
     already=True
     
@@ -370,7 +373,7 @@ def __start():
     tinuix.datas['appbar']=(
         ('','\uE74E',save_file),('渲染','\uE8A1',reopenfunc),('另存为','\uE792',saveas_file),
         '',('搜索','\uE721',open_textfinder),('替换','\uE8EE',open_textfinder_replace),
-        '',('HTML','\uF57E',open_htmlinputer),('表格','\uF0E2',open_tabinputer),
+        '',('HTML','\uF57E',open_htmlinputer),('表格','\uF0E2',open_tabinputer),('代码','\uE943',open_codeinputer),
         '',('','\uE7A7',editor_undo),('','\uE7A6',editor_redo),
     )
     tinuix.loadxml(open('pages/writer.xml',encoding='utf-8').read())
@@ -440,5 +443,6 @@ def __start():
     textfinder=utils.TextFinder('TinWriter搜索',editor,searchmode,'WriterSearchMode')
     writerhtmlinputer=utils.WriterHtmlInputer(editor)
     tabinputer=utils.WriterTabInputer(editor)
+    codeinputer=utils.WriterCodeInputer(editor)
 
     root.focus_set()

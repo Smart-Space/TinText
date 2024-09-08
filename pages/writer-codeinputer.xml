@@ -1,0 +1,8 @@
+<!--TinUIXml编辑-->
+<tinui>
+<line y='20' anchor='w'>
+    <paragraph text='代码类型：'></paragraph>
+    <entry width='200'>entry</entry>
+    <button2 text='插入代码片段' command='self.funcs["set_code"]'></button2>
+</line>
+</tinui>
