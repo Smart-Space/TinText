@@ -32,7 +32,7 @@
 这又是一个普通文本。
 
 <p>
-<lnk>TinText应用的UI界面库-TinUI|tinui.smart-space.com.cn|TinUI是完全基于tkinter的现代化元素组件库
+<lnk>TinText应用的UI界面库-TinUI|https://tinui.smart-space.com.cn/|TinUI是完全基于tkinter的现代化元素组件库
 <link>GitHub|https://github.com/
 
 |-<lnk>标签是自带换行的，而<p>可以拼接含超链接的文本
