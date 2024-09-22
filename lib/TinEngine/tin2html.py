@@ -163,7 +163,10 @@ class TinTranslator():
                 notes=kw['note']
                 _quote=blockquote()
                 for note in notes:
-                    _quote.add(p(note))
+                    if note=='':
+                        _quote.add(br())
+                    else:
+                        _quote.add(p(note))
                 _body.add(_quote)
             elif tag == '<tb>':
                 #表格
