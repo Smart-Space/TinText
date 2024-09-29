@@ -534,6 +534,7 @@ class WriterHelper:
         '<stop>':'<stop>',
         '<tb>':'<tb>', '<table>':'<tb>', '</tb>':'</tb>', '</table>':'</tb>',
         '<title>':'<title>', '<t>':'<title>',
+        '<wait>':'<wait>','<w>':'<wait>',
     }
     
     #alt+g 自动生成的根据
@@ -569,6 +570,8 @@ class WriterHelper:
     '</table>':'',
     '<title>':'title|[level]',
     '<t>':'title|[level]',
+    '<wait>':'content',
+    '<w>':'content',
     }
 
     def __init__(self,editor,about):

@@ -10,7 +10,6 @@ from tkinter import ttk
 # from tkinter.filedialog import askdirectory
 import tkinter.font as tkfont
 import webbrowser
-from time import sleep
 import subprocess
 import os
 import io
@@ -30,7 +29,7 @@ from tinui import BasicTinUI,show_info,show_success,show_warning,show_error,show
 from .tin2html import TinML
 from .error import NoLinesMode, TagNoMatch, NoLinesMark, AlreadyStartLine
 from .controls import ScrolledText, Balloon, TinTextSeparate, TinTextNote,\
-    TinTextTable, TinTextPartAskFrame
+    TinTextTable, TinTextPartAskFrame, TinTextWaitFrame
 from .structure import PartTag
 from .tinlexer import TinLexer
 
@@ -126,6 +125,11 @@ class TinText(ScrolledText):
         self.tinparser=TinParser()#解析器
         self.balloon=Balloon()#提示框
         self.img_thread_pool=ThreadPoolExecutor(max_workers=10)#图片下载线程池
+        self.render_thread=None#渲染线程
+        self.render_flag=threading.Event()#渲染线程标志
+        self.render_flag.set()
+        self.bind('<<StopRender>>', lambda e:self.pause_thread_render())
+        self.bind('<<ResumeRender>>', lambda e:self.resume_thread_render())
         self.__initialize()
 
     def __initialize(self):
@@ -666,7 +670,9 @@ class TinText(ScrolledText):
                         self.__render_err(err)
                         break
                     #这类只在tin语言渲染中存在的操作，不参与tinml和html渲染
-                    sleep(t)
+                    self.render_flag.clear()
+                    self.render_flag.wait(t)
+                    self.render_flag.set()
                 case '<tb>'|'<table>':
                     #<tb>title1|title2|[title3]|...
                     #<tb>cont1|cont2|[cont2]|...
@@ -830,7 +836,27 @@ class TinText(ScrolledText):
                         break
                     self.__render_numlist(numlist_content)
                     self.tinml.addtin('<nl>',content=numlist_content)
-
+                case '<wait>'|'<w>':
+                    #<wait>content
+                    #等待读者继续确定阅读
+                    #只是暂停渲染，不像<part>暂停其它功能
+                    if unit_length>3:
+                        err=f'[{unit[0]}]<wait>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n<wait>内容'
+                        self.__render_err(err)
+                        break
+                    content=unit[2]
+                    if content=='':
+                        err=f'[{unit[0]}]<wait>内容不能为空'
+                        self.__render_err(err)
+                        break
+                    self.insert('end','\n'*3)
+                    ttwf=TinTextWaitFrame(self,content)
+                    ttwf.initial()
+                    self.config(state='disabled')
+                    self.render_flag.clear()
+                    self.render_flag.wait()
+                    self.config(state='normal')
+                    self.delete('end-3c','end')
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)
@@ -847,5 +873,15 @@ class TinText(ScrolledText):
     def thread_render(self,tintext='<tin>TinText'):
         #创建一个子线程，渲染tin标记
         if not self.RENDERING:
-            thread=threading.Thread(target=self.render,args=(tintext,))
-            thread.start()
+            self.render_thread=threading.Thread(target=self.render,args=(tintext,))
+            self.render_thread.start()
+    
+    def pause_thread_render(self):
+        #暂停渲染
+        # self.render_flag.clear()
+        ...
+
+    def resume_thread_render(self):
+        #恢复渲染
+        self.render_flag.set()
+

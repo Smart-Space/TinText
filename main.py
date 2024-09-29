@@ -5,12 +5,13 @@ TinText Tin富文本标记语言
 project-url: https://tintext.smart-space.com.cn
 project-dev: https://github.com/smart-space/tintext
 
-Copyright since 2024 Smart-Space <smart-space@qq.com|tsan-zane@outlook.com>
+Copyright since 2024 Junming Zhang(Smart-Space) <smart-space@qq.com|tsan-zane@outlook.com>
 """
 import platform
 import tkinter as tk
 import sys
 import os
+(os.path.dirname(os.path.realpath(__file__)))
 from multiprocessing import freeze_support, Process, Lock, Pipe
 
 import tkinterweb
@@ -22,6 +23,7 @@ import process
 #获取程序所在目录，设置该目录为工作目录
 rootpath=sys.path[0]
 os.chdir(rootpath)
+
 
 def quit():
     #允许子窗口调用，完全退出

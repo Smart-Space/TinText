@@ -159,7 +159,7 @@ class TinTextTable(TinUI):
 class TinTextPartAskFrame(ttk.Frame):
     #TinText<part>询问框
     def __init__(self,master,name):
-        super().__init__(master.frame)
+        super().__init__(master)
         self.master=master
         self.partname=name
         self.result=None
@@ -189,4 +189,29 @@ class TinTextPartAskFrame(ttk.Frame):
     
     def no(self,e):
         self.result=False
+        self.destroy()
+
+
+class TinTextWaitFrame(ttk.Frame):
+    #TinText<wait>询问框
+    def __init__(self,master,content):
+        super().__init__(master)
+        self.master=master
+        self.content=content
+        self.tinui=BasicTinUI(self,bg=master.cget('background'))
+        self.tinui.pack(fill='both',expand=True)
+    
+    def initial(self):
+        w,h=self.master.winfo_width(),self.master.winfo_height()
+        self.place(x=w/2,y=h,width=w,height=60,anchor='s')
+
+        self.tinui.add_paragraph((5,w/2),text=self.content)
+        bbox=self.tinui.bbox('all')
+        endy=bbox[3]+3
+        self.tinui.add_button2((w/2,endy),minwidth=w,text='继续阅读>>',command=self.yes,anchor='n')
+        bbox=self.tinui.bbox('all')
+        self.tinui.config(scrollregion=bbox)
+
+    def yes(self,e):
+        self.master.event_generate('<<ResumeRender>>')
         self.destroy()
