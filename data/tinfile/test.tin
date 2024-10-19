@@ -42,8 +42,8 @@
 <p>使用<img>标签载入网络图片，若本地存在同名图片，优先使用本地。;
 |*注意，如果文件名为空，则直接使用链接。
 |/<img>本身不换行。|
-|-<img>TinLogo.png
-|-目前，暂不支持只含图片名称的<img>标记转译为html
+|-<img>TinLogo.png||100%x200
+|-TinText-v1.4起，支持只含图片路径的<img>标签转译为html，但是图片链接同样指向本地，生成的html不能够准确传播，必须转为pdf等类型文档进行传输
 <img>TinLogo.png|https://smart-space.com.cn/img/TinLogo.png|100%x200
 
 <p>
@@ -114,6 +114,26 @@
 |%VEB%
 |%VEB%root=Tk()
 |%VEB%root.mainloop()%VEB%|
+
+<p>
+<p>使用<pages>及组合标签，能够插入标签页，呈现多页TinML内容。
+
+<pages>Tin|TinML
+
+<t>Tin|3
+<p>Tin是“|*TiN|”的变形，|/氮化钛|，最初就是指Tin标记语言。很奇怪的名字，是吧。
+<p>后来也用到了其它项目上，比如TinEngine, TinUI等等，还有现在的TinText。
+
+</page>
+|-中间用</page>来分割
+
+<t>TinML|3
+<p>TinML是|=TiN Markup Language|的缩写，这与之前的Tin对应，“TinML”随着TinText项目一同出现，专门用来指代Tin标记语言。
+<p>TinReader（TinGroup）是对Tin标记语言的第一个实现，带有实验性质，堆砌了大量实验性功能，而且当时的Tin标记语言规范性差，有太多“炫技式”特性。
+<p>TinText是对新版TinML标准的第一个实现，也是新一版TinML从规范到实现、再从实现到改进和扩充规范的孪生应用。
+
+|-结尾直接使用</pages>，不需要用</page>分割
+</pages>
 
 <p>
 <p>返回顶部⏫

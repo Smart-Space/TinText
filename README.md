@@ -38,6 +38,6 @@ TODO LIST：
 
 - gif专门支持显示
 
-- 
+- 支持<tinfile>（<tinf>），导入data/tinfile下的TIN格式文件，可选择直接导入，或者导入在子TinText中
 
 ……

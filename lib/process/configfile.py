@@ -8,6 +8,8 @@ from lib.structure import SettingDict
 
 config_files=(
     'general', # settings/general.ini
+    'output', # settings/output.ini
+    'theme', # settings/theme.ini
 )
 
 def initial():

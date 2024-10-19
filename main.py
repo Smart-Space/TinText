@@ -8,6 +8,7 @@ project-dev: https://github.com/smart-space/tintext
 Copyright since 2024 Junming Zhang(Smart-Space) <smart-space@qq.com|tsan-zane@outlook.com>
 """
 import platform
+# import ctypes
 import tkinter as tk
 import sys
 import os
@@ -44,6 +45,20 @@ if __name__=='__main__':
 
     root=tk.Tk()
     root.withdraw()
+
+    # if platform.system()=='Windows':
+    #     try:
+    #         ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    #         ScaleFactor=ctypes.windll.shcore.GetScaleFactorForDevice(0)
+    #         root.tk.call('tk','scaling',96*ScaleFactor/100/72)
+    #         win_handle=ctypes.wintypes.HWND(root.winfo_id())
+    #         monitor_handle=ctypes.windll.user32.MonitorFromWindow(win_handle,2)
+    #         x_dpi=ctypes.wintypes.UINT()
+    #         y_dpi=ctypes.wintypes.UINT()
+    #         ctypes.windll.shcore.GetDpiForMonitor(monitor_handle,0,ctypes.pointer(x_dpi),ctypes.pointer(y_dpi))
+    #     except Exception:
+    #         pass
+
     html=tkinterweb.HtmlFrame(root,messages_enabled=False)#载入tkhtml框架
     html.pack(expand=True,fill='both')
     root.after(1,initial)

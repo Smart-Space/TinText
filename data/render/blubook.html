@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>TinText</title>
+    <title>blubook.html</title>
     <meta charset="utf-8">
     <style>@charset "UTF-8";
 
@@ -17,12 +17,6 @@
   --control-text-color: #ddd;
   --window-border: 1px solid #183055;
   --code-cursor: #f0f0f0;
-}
-
-/*** Btn in search bar ***/
-#filesearch-case-option-btn,
-#filesearch-word-option-btn {
-  background: var(--side-bar-bg-color);
 }
 
 /****** Global Style ******/
@@ -124,20 +118,6 @@ table tr td:last-child {
 }
 
 
-/****** YAML Style ******/
-pre.md-meta-block {
-  font-size: .85rem !important;
-  color: #5d5d5d;
-  min-height: .8rem;
-  white-space: pre-wrap;
-  background: #f5f7f9;
-  display: block;
-  overflow-x: hidden;
-  padding: 1rem;
-  border-radius: 8px;
-}
-
-
 
 /****** Global Text ******/
 p {
@@ -230,280 +210,6 @@ h6 {
 }
 
 
-/****** Print header ******/
-@media print {
-  .typora-export * {
-    -webkit-print-color-adjust: exact;
-  }
-
-  #write h1::before {
-    content: '';
-    bottom: 1rem;
-  }
-
-  #write h2::before {
-    content: '';
-    bottom: 1rem;
-  }
-
-  #write h3::before {
-    content: '';
-    bottom: 1rem;
-  }
-
-  #write h4::before {
-    content: '';
-    bottom: 1rem;
-  }
-
-  #write h5::before {
-    content: '';
-    bottom: 1rem;
-  }
-
-  #write h6::before {
-    content: '';
-    bottom: 1rem;
-  }
-
-
-}
-
-
-/****** #write Code Fences ******/
-#write .md-fences {
-  -webkit-font-smoothing: initial;
-  margin: 1rem 0 1rem 0 !important;
-  line-height: 1.43rem;
-  border-radius: 3px;
-  font-size: 0.95rem;
-  word-wrap: normal;
-}
-
-
-#write .CodeMirror-wrap .CodeMirror-code pre {
-  padding-left: 30px;
-  line-height: 1.55rem;
-}
-
-#write .CodeMirror-cursors .CodeMirror-cursor {
-  border-left: 2px solid var(--code-cursor);
-}
-
-#write code,
-tt {
-  margin: 0 2px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  font-size: 0.92rem !important;
-  background: #f5f7f9;
-  display: inline;
-  vertical-align: bottom;
-  line-height: 1.8;
-}
-
-#write .md-footnote {
-  color: var(--main-5);
-  background-color: var(--main-1);
-}
-
-.cm-s-inner.CodeMirror,
-.cm-s-inner .CodeMirror-gutters {
-  padding: 0.75rem 0.15rem 0.75rem 0.15rem;
-  background-color: #183055 !important;
-  color: #f8f8f2 !important;
-  border: none;
-  border-radius: 6px;
-}
-
-
-.code-tooltip {
-  box-shadow: 0 1px 1px 0 rgba(0, 28, 36, .3);
-  border-top: 1px solid #eef2f2;
-  background: #183055;
-  border-radius: 6px;
-}
-
-.md-fences {
-  font-size: .9rem;
-  position: relative !important;
-  display: block;
-  page-break-inside: avoid;
-  text-align: left;
-  overflow: visible;
-  white-space: pre;
-  background: inherit;
-}
-
-.md-fences {
-  background-color: #f8f8f8;
-  margin-bottom: 15px;
-  margin-top: 15px;
-  padding-top: 8px;
-  padding-bottom: 6px;
-}
-
-.md-fences,
-tt {
-  border-radius: 3px;
-  /* color: #f0f0f0; */
-  padding: 0;
-  font-size: 0.9rem;
-}
-
-/****** Sidebar ******/
-#typora-sidebar * {
-  color: #f0f0f0;
-}
-
-#typora-sidebar .file-tree-node.file-library-file-node.active .file-node-background {
-  border-left: 5px solid #3884ff;
-  height: 2.2rem;
-}
-
-#sidebar-files-menu {
-  border: 1px solid rgba(0, 2, 3, 0.7);
-}
-
-.file-list-item {
-  border-bottom: var(--window-border);
-}
-
-.file-list-item {
-  overflow: hidden;
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  border-bottom: var(--window-border);
-  cursor: pointer;
-  padding-right: 8px;
-  padding-top: 12px;
-  padding-left: 24px;
-  transition: top .5s;
-  -webkit-transition: top .5s;
-}
-
-.file-list-item.active {
-  background: #2f4566;
-  /* background: var(--active-file-bg-color); */
-  color: var(--active-file-text-color);
-  border-radius: 12px;
-}
-
-.file-list-item:not(.active) {
-  opacity: .9;
-}
-
-.file-node-content {
-  padding-top: 6px;
-  margin: 0 0 8px 0;
-  cursor: default;
-  color: var(--control-text-color);
-  white-space: nowrap;
-  height: 2.2rem;
-  line-height: 1.5;
-}
-
-.ty-on-drag-enter {
-  background-color: #2f4566;
-  color: var(--item-hover-text-color);
-}
-
-.file-node-content:active {
-  border-radius: 0px !important;
-  background: #2f4566;
-}
-
-.active .file-node-content {
-  font-weight: bold;
-}
-
-.file-node-content:hover {
-  cursor: pointer;
-  border-radius: 0px !important;
-}
-
-.file-node-icon,
-.file-node-open-state {
-  display: block;
-  float: left;
-  line-height: 1.5;
-  min-height: 15px;
-}
-
-.file-node-icon {
-  margin-right: 6px;
-}
-
-.file-list-item-file-name {
-  font-weight: 700;
-  margin-bottom: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  line-height: 2;
-}
-
-.sidebar-footer {
-  background: var(--side-bar-bg-color);
-  border-top: 1px #555 solid;
-}
-
-.html-for-mac #file-library-search-input {
-  border: 0;
-  border-bottom: 1px solid #ccc;
-  line-height: 16px;
-  margin: 5px 16px 0px 0;
-  width: 0;
-  /* -webkit-flex: 1; */
-  flex: 1;
-  background: 0 0;
-  color: #bbc0ca !important;
-  /* transform: translateY(-3px); */
-  /* overflow: auto; */
-  padding-top: 6px;
-}
-
-#typora-sidebar #ty-sidebar-footer .sidebar-footer-item:hover {
-  background: #021d43;
-}
-
-#typora-sidebar #outline-content .outline-item:hover {
-  background: #202020;
-}
-
-#typora-sidebar #ty-sidebar-footer #sidebar-files-menu .show+.menuitem-group-label.show {
-  border-color: #202020;
-}
-
-#typora-sidebar #ty-sidebar-footer {
-  border-top: 1px solid #19191c;
-}
-
-#typora-sidebar #ty-sidebar-footer #sidebar-files-menu li>a:hover {
-  background: #021d43;
-}
-
-#typora-sidebar #ty-sidebar-footer #sidebar-files-menu .ty-side-sort-btn.active,
-#typora-sidebar #ty-sidebar-footer #sidebar-files-menu .ty-side-sort-btn:hover {
-  color: #3884FF;
-}
-
-#typora-sidebar #ty-sidebar-footer #sidebar-files-menu .ty-side-sort-btn.active {
-  background: #001129;
-}
-
-#typora-sidebar .file-list-item.file-library-node:not(.active):hover {
-  background: #243959;
-  border-radius: 12px;
-}
-
-#typora-sidebar .file-tree-node.file-library-file-node:not(.active):hover .file-node-background {
-  background: #243959;
-  border-radius: 12px;
-  height: 2.2rem;
-}
-
 /****** Quote style ******/
 blockquote {
   position: relative;
@@ -527,67 +233,58 @@ blockquote::before {
   border-bottom-left-radius: 6px;
 }
 
-/****** task list style ******/
-.task-list {
-  padding-left: 0;
-}
-
-.md-task-list-item>input {
-  top: -0.2rem;
-  margin-left: -1.6rem;
-  margin-top: calc(1rem + 1px);
-  -webkit-appearance: initial;
-}
-
-.md-task-list-item>input:before {
-  border: 1px solid#0185ff;
-  border-radius: 1rem;
-  width: 1rem;
-  height: 1rem;
-  background: #fff;
-  content: ' ';
-  transition: background-color 200ms ease-in-out;
-  display: block;
-}
-
-.md-task-list-item>input:checked:before,
-.md-task-list-item>input[checked]:before {
-  background: #0185ff;
-  border-width: 1px;
-  transition: background-color 200ms ease-in-out;
-}
-
-.md-task-list-item>input:checked:after,
-.md-task-list-item>input[checked]:after {
-  opacity: 1;
-}
-
-.md-task-list-item>input:after {
-  opacity: 1;
-  -webkit-transition: opacity 0.05s ease-in-out;
-  -moz-transition: opacity 0.05s ease-in-out;
-  transition: opacity 0.05s ease-in-out;
-  -webkit-transform: rotate(-45deg);
-  -moz-transform: rotate(-45deg);
-  transform: rotate(-45deg);
-  position: absolute;
-  top: 0.25rem;
-  left: 0.19rem;
-  width: 0.6rem;
-  height: 0.375rem;
-  border: 2px solid #fff;
-  border-top: 0;
-  border-right: 0;
-  content: ' ';
-  opacity: 0;
-}
-
-
 div{
 width: 50%;
 margin: auto;
-}</style>
-    <style>pre { line-height: 125%; }
+}
+
+/*****TabView*****/
+.tabs {
+  position: relative;
+  min-height: 50vh;
+  clear: both;
+  margin: 25px 0;
+  width: 100%;
+}
+.tab {
+  float: left;
+  width: auto;
+}
+.tab label {
+  background: white;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-left: -1px;
+  position: relative;
+  left: 1px;
+}
+.tab [type=radio] {
+  display: none;
+}
+.tabcontent {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  background: white;
+  right: 0;
+  bottom: 0;
+  padding: 20px;
+  border: 1px solid #ccc;
+  width: auto;
+  height: auto;
+  overflow: auto;
+  border-radius: 6px;
+}
+[type=radio]:checked ~ label {
+  background: #3884ff;
+  color: white;
+  z-index: 2;
+}
+[type=radio]:checked ~ label ~ .tabcontent {
+  z-index: 1;
+}
+</style>
+    <style>pre { line-height: 125%; font-family: "Consolas";}
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
 span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
 td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
@@ -664,7 +361,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <p>这又是一个普通文本。</p>
       <p><br></p>
       <p>
-        <a href="tinui.smart-space.com.cn">TinText应用的UI界面库-TinUI</a>
+        <a href="https://tinui.smart-space.com.cn/">TinText应用的UI界面库-TinUI</a>
       </p>
       <p>
         <a href="https://github.com/">GitHub</a>
@@ -768,6 +465,33 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <span class="k">|</span><span class="s">root.mainloop()</span><span class="k">|</span>
 </pre></div>
 
+      <p><br></p>
+      <p>使用&lt;pages&gt;及组合标签，能够插入标签页，呈现多页TinML内容。</p>
+      <div class="tabs">
+        <div class="tab">
+          <input checked="" id="tag-0" name="tab-group-1" type="radio">
+          <label for="tag-0">Tin</label>
+          <div class="tabcontent">
+            <h3>Tin</h3>
+            <p>Tin是“
+              <b>TiN</b>”的变形，<i>氮化钛</i>，最初就是指Tin标记语言。很奇怪的名字，是吧。
+            </p>
+            <p>后来也用到了其它项目上，比如TinEngine, TinUI等等，还有现在的TinText。</p>
+          </div>
+        </div>
+        <div class="tab">
+          <input id="tag-1" name="tab-group-1" type="radio">
+          <label for="tag-1">TinML</label>
+          <div class="tabcontent">
+            <h3>TinML</h3>
+            <p>TinML是
+              <mark>TiN Markup Language</mark>的缩写，这与之前的Tin对应，“TinML”随着TinText项目一同出现，专门用来指代Tin标记语言。
+            </p>
+            <p>TinReader（TinGroup）是对Tin标记语言的第一个实现，带有实验性质，堆砌了大量实验性功能，而且当时的Tin标记语言规范性差，有太多“炫技式”特性。</p>
+            <p>TinText是对新版TinML标准的第一个实现，也是新一版TinML从规范到实现、再从实现到改进和扩充规范的孪生应用。</p>
+          </div>
+        </div>
+      </div>
       <p><br></p>
       <p>返回顶部⏫
         <a href="#head">🔗</a>

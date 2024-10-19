@@ -29,7 +29,7 @@ from tinui import BasicTinUI,show_info,show_success,show_warning,show_error,show
 from .tin2html import TinML
 from .error import NoLinesMode, TagNoMatch, NoLinesMark, AlreadyStartLine
 from .controls import ScrolledText, Balloon, TinTextSeparate, TinTextNote,\
-    TinTextTable, TinTextPartAskFrame, TinTextWaitFrame
+    TinTextTable, TinTextPartAskFrame, TinTextWaitFrame, TinTextPage
 from .structure import PartTag
 from .tinlexer import TinLexer
 
@@ -206,6 +206,10 @@ class TinText(ScrolledText):
         with open('./data/render/code.css','r',encoding='utf-8') as f:
             self.code_css=f.read()
         self.all_lexers=get_all_lexers()
+        #标签页面
+        self.PAGES_TAG=False#是否在标签页面内
+        self.pages :list[TinText] =[]#当前页面TinText列表
+        self.page_content=[]#当前页面内容
         
     def __render_err(self,msg,index='end'):
         self.insert(index,msg,'error')
@@ -228,28 +232,30 @@ class TinText(ScrolledText):
             head_num=0
             p_tags=[]
             HIGHLIGHT=False
+            #开头标记应当是连续的
+            for tag_char in head_mark:
+                if tag_char not in self.paragraph_mark:
+                    break
+                else:
+                    head_num+=1
+            head_mark=head_mark[:head_num]#去掉多余的非标记
+            #开头标记必须连续
             if '*' in head_mark:
-                head_num+=1
                 p_tags.append('bold')
             if '/' in head_mark:
-                head_num+=1
                 p_tags.append('italic')
             if '_' in head_mark:
-                head_num+=1
                 p_tags.append('underline')
             if '-' in head_mark:
-                head_num+=1
                 p_tags.append('overstrike')
             if '=' in head_mark:
-                head_num+=1
                 HIGHLIGHT=True
             if '!' in head_mark:
-                # head_num+=1
                 result=self.paragraph_link_re.match(text)
                 if result==None:
                     #如果使用了!开头标记但没有遵循![text](url)格式
                     #按普通文本渲染
-                    head_num+=1
+                    pass
                 else:
                     text,url=result.groups()
                     if text=='':
@@ -383,7 +389,7 @@ class TinText(ScrolledText):
     def __render_numlist(self,contents):
         #有序列表
         levels=[0,0,0,0]#层级
-        lastlevel=1
+        lastlevel=0
         for item in contents:
             level=item[0]
             if level<lastlevel:
@@ -434,6 +440,20 @@ class TinText(ScrolledText):
         self.window_create('end',window=frame,align='center')
         self.insert('end','\n')
         return 1
+    
+    def __render_pages(self,names:tuple):
+        #标签页面
+        self.update()
+        page=TinTextPage(self,names)
+        self.widgets.append(page)
+        self.window_create('end',window=page,padx=1,align='center')
+        for name in names:
+            ui=page.page(name)
+            tintext=TinText(ui,font=self.cget('font'))
+            tintext.config(borderwidth=0, relief="flat", insertbackground='#000000', insertborderwidth=1,
+            wrap='char', spacing1=10)
+            tintext.pack(fill='both',expand=True)
+            self.pages.append(tintext)
 
     def render(self,tintext='<tin>TinText',new=True):
         #渲染tin标记
@@ -470,6 +490,8 @@ class TinText(ScrolledText):
             unit_length=len(unit)
             #==========解析标记==========
             #先行判断
+            PASS=False#用于延后判断是否跳过，并非所有跳过都需要
+            #part是全局控制标签，优先级更高
             if not self.parttag.check():
                 #<part>未被允许阅读
                 if unit[1] not in ('</part>','</pt>'):
@@ -477,7 +499,18 @@ class TinText(ScrolledText):
                     continue
                 if unit[2] != self.parttag.now():
                     #不是当前忽略层级（名称）
+                    PASS=True
+            #pages是元素标签，但是是一个局部控制框架
+            #优先级比part低，但也较高
+            if self.PAGES_TAG:
+                if unit[1] not in ('</pages>','</page>'):
+                    if len(unit)==3:
+                        tincontent=''.join(unit[1:])
+                    else:
+                        tincontent=unit[1]+'|'.join(unit[2:])
+                    self.page_content.append(tincontent)
                     continue
+            if PASS: continue
             #匹配标签与标记
             match unit[1]:
                 case '<tin>':
@@ -575,8 +608,8 @@ class TinText(ScrolledText):
                     if unit_length>=4:
                         #url存在
                         img_url=unit[3]
-                        if img_url=='':
-                            #网址不能为空
+                        if img_url=='' and img_path_name=='':
+                            #图片本地路径为空，网址不能为空
                             err=f'[{unit[0]}]<img>网址不能为空'
                             self.__render_err(err)
                             break
@@ -857,6 +890,47 @@ class TinText(ScrolledText):
                     self.render_flag.wait()
                     self.config(state='normal')
                     self.delete('end-3c','end')
+                case '<pages>':
+                    #<pages>name1|name2|...|nameN
+                    #...
+                    #</page>
+                    #...
+                    #</page>
+                    #...
+                    #</pages>
+                    #页面文本
+                    #设计上，开头定义页面模块总数，然后直接通过tinui.notebook生成标签页
+                    #记录当前文本，到</page>时结束记录，开始渲染
+                    page_num=len(unit[2:])
+                    if page_num==1:
+                        err=f'[{unit[0]}]<pages>标记参数过低:\n{unit[1]+"|".join(unit[2:])}\n<pages>name1|name2|[name3]|...'
+                        self.__render_err(err)
+                        break
+                    self.__render_pages(unit[2:])
+                    self.PAGES_TAG=True
+                    page_num=0#页面计数器
+                    page_names=unit[2:]
+                case '</page>':
+                    #<pages>的间隔标签
+                    page_tin='\n'.join(self.page_content)
+                    #渲染页面，但是是线程阻塞的
+                    self.pages[page_num].thread_render(page_tin,True)
+                    self.page_content.clear()
+                    page_num+=1
+                case '</pages>':
+                    #<pages>的间隔标签
+                    page_tin='\n'.join(self.page_content)
+                    #渲染页面，但是是线程阻塞的
+                    self.pages[page_num].thread_render(page_tin,True)
+                    self.page_content.clear()
+                    #<pages>的结束标签
+                    pages=self.pages.copy()
+                    self.tinml.addtin('<pages>',pages=pages,names=page_names)
+                    del page_num
+                    del page_names
+                    self.PAGES_TAG=False
+                    self.pages.clear()
+                    self.page_content.clear()
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)
@@ -870,11 +944,14 @@ class TinText(ScrolledText):
         self.RENDERING=False
         print(self.tinml)
 
-    def thread_render(self,tintext='<tin>TinText'):
+    def thread_render(self,tintext='<tin>TinText',wait=False):
         #创建一个子线程，渲染tin标记
         if not self.RENDERING:
             self.render_thread=threading.Thread(target=self.render,args=(tintext,))
             self.render_thread.start()
+            #是否等待
+            if wait:
+                self.render_thread.join()
     
     def pause_thread_render(self):
         #暂停渲染

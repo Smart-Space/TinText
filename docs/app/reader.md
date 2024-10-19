@@ -43,6 +43,8 @@
 TinText支持将TIN标记语言转译为其它格式文件，包括：
 
 - html（原生支持，使用TinTranslator.tin2html）
+  
+  > 转义html所使用的css文件为`./data/render/blubook.css`，如果想要更换，则可以修改该文件，也可以在`./data/settings/output.ini [html][output]`项目中修改目标css文件路径
 
 - markdown（使用html2text）
 
@@ -51,5 +53,3 @@ TinText支持将TIN标记语言转译为其它格式文件，包括：
 在菜单中选择关于操作，查看项目页面
 
 ![](../imgs/reader/menuabout.png)
-
-

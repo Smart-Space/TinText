@@ -5,11 +5,14 @@ TinText界面功能中的杂项功能
 from tkinter import CallWrapper, Text, Toplevel
 import tkinter as tk
 from tkinter import ttk
+# import ctypes
 import os
 from threading import Thread, Timer
 from time import sleep
+import webbrowser
+from urllib.request import quote
 
-from tinui import BasicTinUI, TinUIXml
+from tinui import BasicTinUI, TinUIXml, show_error
 
 import process
 
@@ -56,6 +59,15 @@ def bind(widget,name,seq=None,func=None,add=None):
         return widget.tk.call('bind',name,seq)
     else:
         return widget.tk.splitlist(widget.tk.call('bind',name))
+
+
+# def TkS(value) -> float:
+#     # 高分辨率效果
+#     ScaleFactor=ctypes.windll.shcore.GetScaleFactorForDevice(0)
+#     if DPI_MODE <= 1:
+#         return value
+#     elif DPI_MODE == 2:
+#         return ScaleFactor/100*value
 
 
 class ScrolledText(tk.Text):
@@ -126,9 +138,9 @@ class TextFinder(Toplevel):
         """
         super().__init__(*args,**kw)
         self.title(title)
+        self.withdraw()
         self.iconbitmap('./logo.ico')
         self.geometry("375x60")# y search 60, replace 125
-        self.withdraw()
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.close)
 
@@ -252,6 +264,87 @@ class TextFinder(Toplevel):
         process.config('save','general')
 
 
+class ReaderWebFinder(Toplevel):
+    #TinReader的网页查找器
+    def __init__(self,webentryval,*args,**kw):
+        """
+        初始化，创建网络搜索器
+        """
+        super().__init__(*args,**kw)
+        self.title('网络搜索器')
+        self.withdraw()
+        self.iconbitmap('./logo.ico')
+        self.geometry('375x120')
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.close)
+
+        self.tinui=BasicTinUI(self)
+        self.tinui.pack(expand=True,fill='both')
+
+        self.tinuixml=TinUIXml(self.tinui)
+        with open('./pages/reader_web_finder.xml','r',encoding='utf-8') as f:
+            xml=f.read()
+        self.tinuixml.funcs.update({'go_to_search':self.go_to_search,'sel_engine':self.sel_engine})
+        self.tinuixml.loadxml(xml)
+        self.entry_search=self.tinuixml.tags['entry_search'][0]
+        self.webentry=self.tinuixml.tags['webentry'][0]
+        
+        #从设置文件中获取的自定义搜索引擎
+        #新的自定义搜索引擎在搜索后才写入到配置文件中
+        self.webentry.insert(0,webentryval)
+
+        self.engine='Bing(默认)'
+        self.engines={
+            'Bing(默认)':'https://cn.bing.com/search?q=',
+            '百度':'https://www.baidu.com/s?wd=',
+            '360':'https://www.so.com/s?q=',
+            'Google':'https://www.google.com/search?q=',
+            '搜狗':'https://www.sogou.com/web?query=',
+            '自定义':webentryval,
+        }
+        self.webentryval=webentryval
+
+        self.entry_search.bind('<Return>',self.go_to_search)
+    
+    def go_to_search(self,e):
+        """
+        跳转到搜索
+        """
+        #如果是自定义，写入到配置文件中
+        if self.engine=='自定义':
+            url=self.webentry.get()
+            if url=='':
+                show_error(self,'错误','请输入自定义搜索引擎')
+                return
+            if url != self.webentryval:
+                process.config('set','general','ReaderSearchMode','webengine',url)
+                process.config('save','general')
+                self.engines[self.engine]=url
+                self.webentryval=url
+        content=self.entry_search.get()
+        content=quote(content)
+        webbrowser.open(self.engines[self.engine]+content)
+    
+    def sel_engine(self,name):
+        """
+        选择引擎
+        """
+        self.engine=name
+
+    def close(self):
+        """
+        关闭窗口
+        """
+        self.withdraw()
+    
+    def show(self):
+        """
+        显示窗口
+        """
+        self.deiconify()
+        self.entry_search.focus_set()
+
+
 class AboutWindow(Toplevel):
     #TinText的关于窗口
     def __init__(self,version):
@@ -260,8 +353,8 @@ class AboutWindow(Toplevel):
         """
         super().__init__()
         self.title(f'关于 TinText v{version} 应用组')
-        self.iconbitmap('./logo.ico')
         self.withdraw()
+        self.iconbitmap('./logo.ico')
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         center_x = int(screen_width / 2 - 500 / 2)
@@ -297,8 +390,8 @@ class WriterHtmlInputer(Toplevel):
         """
         super().__init__()
         self.title('HTML输入')
-        self.iconbitmap('./logo.ico')
         self.withdraw()
+        self.iconbitmap('./logo.ico')
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         center_x = int(screen_width / 2 - 500 / 2)
@@ -352,8 +445,8 @@ class WriterTabInputer(Toplevel):
         """
         super().__init__()
         self.title('表格输入')
-        self.iconbitmap('./logo.ico')
         self.withdraw()
+        self.iconbitmap('./logo.ico')
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         center_x = int(screen_width / 2 - 500 / 2)
@@ -435,9 +528,9 @@ class WriterTabInputer(Toplevel):
         #鼠标点击表格
         x,y=self.tabs_location[tab]
         self.entry1.delete(0,'end')
-        self.entry1.insert(0,str(x))
+        self.entry1.insert(0,str(y))#列数
         self.entry2.delete(0,'end')
-        self.entry2.insert(0,str(y))
+        self.entry2.insert(0,str(x))#行数
     
     def set_table(self,e):
         #输出表格
@@ -461,8 +554,8 @@ class WriterCodeInputer(Toplevel):
         """
         super().__init__()
         self.title('代码输入')
-        self.iconbitmap('./logo.ico')
         self.withdraw()
+        self.iconbitmap('./logo.ico')
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         center_x = int(screen_width / 2 - 500 / 2)
@@ -529,7 +622,8 @@ class WriterHelper:
         '<n>':'<n>', '<note>':'<n>',
         '<nl>':'<nl>', '<numlist>':'<nl>',
         '<p>':'<p>',
-        '<pt>':'<pt>', '<part>':'<pt>', '</pt>':'</pt>', '</part>':'</pt>',
+        '<pages>':'<pages>', '</page>':'<pages>', '</pages>':'<pages>',
+        '<part>':'<part>', '<pt>':'<part>', '</pt>':'</part>', '</part>':'</part>',
         '<sp>':'<sp>','<separate>':'<sp>',
         '<stop>':'<stop>',
         '<tb>':'<tb>', '<table>':'<tb>', '</tb>':'</tb>', '</table>':'</tb>',
@@ -557,6 +651,9 @@ class WriterHelper:
     '<nl>':'list1;\n|list2\n|list3...|',
     '<numlist>':'list1;\n|list2\n|list3...|',
     '<p>':'text1|[text2]|[text3]...',
+    '<pages>':'name1|name2|[name3]...',
+    '</page>':'',
+    '</pages>':'',
     '<part>':'name',
     '<pt>':'name',
     '</part>':'name',
@@ -587,6 +684,7 @@ class WriterHelper:
     def start(self):
         self.ON=True
         self.thread=Thread(target=self.core)
+        self.thread.setDaemon(True)
         self.thread.start()
     
     def core(self):

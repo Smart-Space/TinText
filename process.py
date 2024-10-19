@@ -1,6 +1,7 @@
 """
 process.py
 TinText的进程消息管理
+操作流在这里堵塞，但是不阻塞主进程
 """
 from multiprocessing import Process, Lock, Queue, Pipe, Pool
 from threading import Thread

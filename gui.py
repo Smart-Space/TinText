@@ -12,6 +12,7 @@ reader_functions=Functions()
 
 writer_functions=Functions()
 writer_functions.start=writer.start
+writer_functions.close=writer.close_writer
 
 maker_functions=Functions()
 maker_functions.start=maker.initial

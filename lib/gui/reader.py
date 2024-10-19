@@ -7,7 +7,9 @@
 from tkinter import Toplevel
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 import os
+import sys
 import webbrowser
+import subprocess
 
 import html2text
 from tinui import BasicTinUI, TinUIXml, show_info, show_success, show_warning, show_error, show_question,\
@@ -20,8 +22,12 @@ from lib.TinEngine.tin2html import TinTranslator
 
 from lib.structure.makeengine import TinpMakeEngine, TinxMakeEngine
 
+
+WRITER=False#是否已经打开编辑器
+
+
 filename=None
-tintype='TIN'
+tintype=None
 
 def start(_quit,**functions):
     #启动&初始化
@@ -33,12 +39,24 @@ def start(_quit,**functions):
 
 def start_with_file(_filename,_quit,**functions):
     #加载文件启动
-    global filename, quit, writerfuncs, makerfuncs
+    global filename, tintype, quit, writerfuncs, makerfuncs
     filename=_filename
     quit=_quit
     writerfuncs=functions['writerfuncs']
     makerfuncs=functions['makerfuncs']
     __start()
+    #判断是否是new标识符，代表新建文件
+    if _filename=='new':
+        newfile(None)
+    else:
+        if filename.endswith('tin'):
+            tintype='TIN'
+        elif filename.endswith('tinp'):
+            tintype='TINP'
+        elif filename.endswith('tinx'):
+            tintype='TINX'
+        load_tinfile()
+
 
 def load_tinfile():
     #载入tin文件
@@ -75,6 +93,28 @@ def load_tinfile():
 
 #以下为菜单功能
 #文件
+def newfile(e):#新建文件
+    global filename, tintype
+    newtinfile=asksaveasfilename(title='创建新的Tin文件',filetypes=[('Tin文件','*.tin')])
+    if not newtinfile:
+        return
+    if not newtinfile.endswith('.tin'):
+        newtinfile+='.tin'
+    #如果没有打开文件，则新建之后打开该文件
+    #如果已经打开了文件，则仅仅新建
+    if filename==None or filename=='new':
+        filename=newtinfile
+        tintype='TIN'
+        filenameio=open(filename,'w',encoding='utf-8')
+        filenameio.write('<tin>')
+        filenameio.close()
+        load_tinfile()
+    else:
+        filenameio=open(newtinfile,'w',encoding='utf-8')
+        filenameio.write('<tin>')
+        filenameio.close()
+        show_success(root,'新建成功','已在指定位置新建Tin文件')
+
 def openfile(e):#打开文件
     global filename, tintype
     tinfile=askopenfilename(title='选择文件进行阅读',filetype=[('Tin文件','*.tin;*.tinp;*.tinx')])
@@ -96,6 +136,7 @@ def reopenfile(e):#重载当前文件
     load_tinfile()
 
 def open_writer(e):#打开编辑器
+    global WRITER
     if filename==None:#如果没有打开文件，则不允许打开编辑器
         return
     if tintype=='TINP':
@@ -104,14 +145,41 @@ def open_writer(e):#打开编辑器
     elif tintype=='TINX':
         show_info(root,'TINX文件','无法打开编辑器，因为当前文件为TINX文件')
         return
+    WRITER=True
     writerfuncs.start(filename,reopenfile,root)
 
+def _quitreader():
+    if WRITER: writerfuncs.close()
+    quit()
 def quitreader(e):
+    if WRITER: writerfuncs.close()
     quit()
 
 #搜索
 def open_textfinder(e):#打开文本查找器
     textfinder.show()
+
+def open_webfinder(e):#打开网页查找器
+    webfinder.show()
+
+#窗口
+def open_new_tintext(e):#打开一个新的TinText
+    if sys.argv[0].endswith('py'):
+        cmd = [sys.executable, sys.argv[0]]
+    else:
+        cmd = [sys.argv[0],]
+    subprocess.Popen(cmd)
+
+def open_new_file_tintext(e):#打开一个新的TinText并打开文件
+    if sys.argv[0].endswith('py'):
+        cmd = [sys.executable, sys.argv[0],'new']
+    else:
+        cmd = [sys.argv[0],'new']
+    subprocess.Popen(cmd)
+
+def close_this_window(e):#关闭这个窗口
+    if WRITER: writerfuncs.close()
+    quit()
 
 #工具
 def outputhtml(e):#导出为HTML
@@ -125,12 +193,14 @@ def outputhtml(e):#导出为HTML
         return
     if not newname.endswith('.html'):
         newname+='.html'
+    newnametitle=os.path.basename(newname)
     root.config(cursor='watch')
-    with open('./data/render/blubook.css','r',encoding='utf-8') as f:
+    cssfile=process.config('get','output','html','css')
+    with open(cssfile,'r',encoding='utf-8') as f:
         style=f.read()
     tintra=TinTranslator(tintext.tinml)
     try:
-        res=tintra.tohtml(_style=style)
+        res=tintra.tohtml(_title=newnametitle,_style=style)
         with open(newname,'w',encoding='utf-8') as f:
             f.write(res.render())
         show_success(root,'导出成功','已在指定位置生成HTML文件')
@@ -194,12 +264,12 @@ def open_releas_page(e):#打开发布页面
 
 #以下为初始化
 def __start():
-    global root, tinui, tintext, textfinder, aboutwindow
+    global root, tinui, tintext, textfinder, aboutwindow, webfinder
 
     root=Toplevel()
     root.title('TinReader')
     root.focus_set()
-    root.protocol("WM_DELETE_WINDOW", quit)
+    root.protocol("WM_DELETE_WINDOW", _quitreader)
     root.withdraw()
 
     root.iconbitmap('logo.ico')
@@ -213,6 +283,7 @@ def __start():
     root.update()
 
     menu_file=(
+        ('新建\tctrl+n',newfile),
         ('打开\tctrl+o',openfile),
         ('重载\tctrl+r',reopenfile),
         ('编辑\tctrl+e',open_writer),
@@ -221,6 +292,12 @@ def __start():
     )
     menu_search=(
         ('搜索\tctrl+f',open_textfinder),
+        ('网络搜索',open_webfinder),
+    )
+    menu_window=(
+        ('新窗口',open_new_tintext),
+        ('新建窗口',open_new_file_tintext),
+        ('关闭窗口',close_this_window)
     )
     menu_tools=(
         ('导出为html',outputhtml),
@@ -240,15 +317,16 @@ def __start():
     tinui=BasicTinUI(root,height=30,bg='#fbfbfb')
     tinui.pack(fill='x')
     tinuix=TinUIXml(tinui)
-    tinuix.datas.update({'menu_file':menu_file,'menu_search':menu_search,'menu_tools':menu_tools,'menu_about':menu_about})
+    tinuix.datas.update({'menu_file':menu_file,'menu_search':menu_search,'menu_window':menu_window,'menu_tools':menu_tools,'menu_about':menu_about})
     tinuix.loadxml(open('pages/reader.xml',encoding='utf-8').read())
     root.update()
 
     tintext=TinText(root,font='微软雅黑 12')
     tintext.pack(fill='both',expand=True)
     tintext.config(state='disabled')
-
+    
     root.update()
+    root.bind('<Control-n>',newfile)
     root.bind('<Control-o>',openfile)
     root.bind('<Control-r>',reopenfile)
     root.bind('<Control-q>',quitreader)
@@ -261,9 +339,11 @@ def __start():
         show_warning(root,'配置文件缺损','无法获取版本号：general[Version][ver]')
         version='未知版本'
     searchmode=process.config('get_item','general','ReaderSearchMode')
+    websearch=process.config('get','general','ReaderSearchMode','webengine')
 
     textfinder=utils.TextFinder('TinReader搜索',tintext,searchmode,'ReaderSearchMode')
     aboutwindow=utils.AboutWindow(version)
+    webfinder=utils.ReaderWebFinder(websearch)
 
     root.deiconify()
     load_tinfile()

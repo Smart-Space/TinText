@@ -2,6 +2,7 @@
 tin->html工具类
 """
 import re
+import sys
 from tempfile import NamedTemporaryFile
 
 import dominate
@@ -41,7 +42,7 @@ class TinTranslator():
         self.tinml=tinml
         self.doc=None
         
-        self.tinPmark=('*','/','_','-','!')
+        self.tinPmark=('*','/','_','-','=','!')
         self.tinPlink_re=re.compile('.*?!\[(.*?)\]\((..*?)\)')
 
         with open('./data/render/code.css','r',encoding='utf-8') as f:
@@ -61,11 +62,12 @@ class TinTranslator():
                 head_mark=text[:6]
                 head_num=0
                 now_p=None#初始化，空
-                if '*' in head_mark: head_num+=1
-                if '/' in head_mark: head_num+=1
-                if '_' in head_mark: head_num+=1
-                if '-' in head_mark: head_num+=1
-                if '=' in head_mark: head_num+=1
+                for tag_char in head_mark:
+                    if tag_char not in self.tinPmark:
+                        break
+                    else:
+                        head_num+=1
+                head_mark=head_mark[:head_num]
                 #开始具体转义html<p>
                 if '!' in head_mark:
                     result=self.tinPlink_re.match(text)
@@ -75,7 +77,7 @@ class TinTranslator():
                             url_text=url
                         now_p=a(url_text,href=url)
                     else:
-                        head_num+=1
+                        pass
                 if '*' in head_mark:
                     if now_p:
                         now_p=b(now_p)
@@ -104,13 +106,14 @@ class TinTranslator():
                 res.append(now_p)
         return res
 
-    def tohtml(self,_title='TinText',_style=''):
+    def tohtml(self,_title='TinText',_style='',code_style=True):
         #tin->html
         doc=dominate.document(title=_title)
         doc.head.add(meta(charset='utf-8'))
         if _style!='':
             doc.head.add(style(raw(_style)))
-        doc.head.add(style(raw(self.code_css)))
+        if code_style:
+            doc.head.add(style(raw(self.code_css)))
         _body=div()
         doc.body.add(_body)
         for tag,kw in self.tinml:
@@ -148,11 +151,12 @@ class TinTranslator():
                 _body.add(hr())
             elif tag == '<img>':
                 #图片
+                imgfile=kw['filename']
                 url=kw['url']
                 size=kw['size']
                 if url=='':
-                    #目前暂不支持没有网络来源的图片
-                    continue
+                    imgfile='file://'+sys.path[0].replace('\\','/')+'/data/imgs/'+imgfile.replace('\\','/')
+                    url=imgfile
                 if size:
                     width,height=size
                     _body.add(img(src=url,alt='',width=width,height=height))
@@ -255,6 +259,28 @@ class TinTranslator():
                     lexer=get_lexer_by_name(code_type)
                 html_content=highlight(code_content,lexer,HtmlFormatter())
                 _body.add(raw(html_content))
+            elif tag == '<pages>':
+                #标签页
+                #如果想要生成PDF，就不应该使用控制类标签
+                #不只是<pages>，所有控制类标签都不应该用来生成PDF
+                pages=kw['pages']
+                names=kw['names']
+                tabsview=div(_class='tabs')
+                for i in range(0,len(names)):
+                    tab=div(_class='tab')
+                    if i==0:
+                        tab.add(input_(type='radio',id=f'tag-{i}',name='tab-group-1',checked=''))
+                    else:
+                        tab.add(input_(type='radio',id=f'tag-{i}',name='tab-group-1'))
+                    tab.add(label(names[i],_for=f'tag-{i}'))
+                    tinml=pages[i].tinml
+                    translator=TinTranslator(tinml)
+                    tabcontentdiv=translator.tohtml(code_style=False).body[-1]
+                    with tabcontentdiv:
+                        attr(_class='tabcontent')
+                    tab.add(tabcontentdiv)
+                    tabsview.add(tab)
+                _body.add(tabsview)
         return doc
     
     # def __tinP_to_markdown(self,texts):

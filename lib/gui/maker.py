@@ -122,6 +122,7 @@ def __start():
     #创建一个500x500，居中窗口
     global root, tinui
     root=Toplevel()
+    root.withdraw()
     root.title('TinMaker')
     root.focus_set()
     root.iconbitmap('./logo.ico')
@@ -150,6 +151,7 @@ def __start():
 
     tinui.textbox.config(state='disabled')
 
+    root.deiconify()
     root.update()
 
     title_filename=os.path.basename(filename)

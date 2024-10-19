@@ -8,6 +8,8 @@ from tkinter import Toplevel, StringVar
 from tkinter.messagebox import askyesno
 from tkinter.filedialog import asksaveasfilename
 import os
+import threading
+import time
 
 from tinui import BasicTinUI, TinUIXml, show_info, show_warning, show_question, show_success, show_error
 
@@ -172,7 +174,12 @@ def open_codeinputer(e):
 
 def on_text_change(e):
     #接受editor的文本变化事件
+    #只匹配上下各十行
+    #创建或刷新进行Timer计时器，在只有一个线程的线程池子线程中匹配一百行
     global SAVE
+    # highlighttimer.cancel()
+    # highlighttimer=threading.Timer(1.5,highlight)
+    # highlighttimer.start()
     if editor.edit_modified()==0:
        pass
     else:
@@ -184,6 +191,7 @@ def on_text_change(e):
         else:
             pass
         highlight()
+        # highlight(startpos='insert linestart',endpos='insert lineend')
 
 def __get_index_line(index):
     #返回index所在行号
@@ -191,25 +199,31 @@ def __get_index_line(index):
 def __get_index_char(index):
     #返回index所在列号
     return index.split('.')[1]
-def highlight(all=False):
+def highlight(all=False,startpos='insert-30l linestart',endpos='insert+30l lineend'):
     #代码高亮
     if all:#全部高亮
         start='1.0'
         end='end'
     else:#部分高亮
-        start=editor.index('insert-50l')
-        end=editor.index('insert+50l')
+        start=editor.index(startpos)
+        end=editor.index(endpos)
     #清空区域样式
-    for tag in color_tags:
-        editor.tag_remove(tag, start, end)
+    # for tag in color_tags:
+    #     editor.tag_remove(tag, start, end)
     #以下循环匹配，用s代指start
     #分隔符
     s=start
     linemode=False#多行模式
+    tagflag=False#标签模式
+    tagstart=None
+    tagend=None
     while True:
-        pos=editor.search('[;\|-]', s, end, regexp=True)
+        pos=editor.search('(;|\||-|<|>)', s, end, regexp=True)
         if not pos:
             break
+        if __get_index_char(pos)=='0':
+            for tag in color_tags:
+                editor.tag_remove(tag, pos, f'{pos} lineend')
         s=None
         char=editor.get(pos)
         if char==';':
@@ -277,33 +291,52 @@ def highlight(all=False):
                     #若是单行模式，则正常高亮
                     editor.tag_add('separate', pos)
                     s=f"{pos}+1c"
+        elif char=='<':
+            if __get_index_char(pos)!='0':
+                s=f"{pos}+1c"
+                continue
+            tagflag=True
+            tagstart=pos
+            s=f"{pos}+1c"
+        elif char=='>':
+            if not tagflag:
+                s=f"{pos}+1c"
+                continue
+            tagflag=False
+            tagend=pos
+            editor.tag_add('tag', tagstart)
+            editor.tag_add('tag', tagend)
+            editor.tag_add('tag_name', f"{tagstart}+1c", tagend)
+            s=f"{pos}+1c"
+            tagstart=None
+            tagend=None
         else:
             s=f"{pos}+1c"
         # if not s: s=f"{pos}+1c"
     #标签
-    s=f"{__get_index_line(start)}.0"
-    while True:
-        start_pos=editor.search('[ ]{0,}<', s, end, regexp=True)
-        if not start_pos:
-            break
-        if editor.get(f'{start_pos} linestart', f'{start_pos} linestart +1c')=='|-':
-            #开头注释，跳过
-            s=f"{start_pos}+1l linestart"
-            continue
-        s=f"{start_pos}+1c"
-        end_pos=editor.search('>', s, end, regexp=True)
-        if not end_pos:
-            #标签未闭合只跳过，不终止
-            pass
-        elif editor.get(f"{start_pos} linestart")=='|':
-            #多行模式
-            s=f"{end_pos}+1l linestart"
-            continue
-        else:
-            editor.tag_add('tag', start_pos)
-            editor.tag_add('tag', end_pos)
-            editor.tag_add('tag_name', f"{start_pos}+1c", end_pos)
-        s=f"{start_pos}+1l linestart"
+    # s=f"{__get_index_line(start)}.0"
+    # while True:
+    #     start_pos=editor.search('[ ]{0,}<', s, end, regexp=True)
+    #     if not start_pos:
+    #         break
+    #     if editor.get(f'{start_pos} linestart', f'{start_pos} linestart +1c')=='|-':
+    #         #开头注释，跳过
+    #         s=f"{start_pos}+1l linestart"
+    #         continue
+    #     s=f"{start_pos}+1c"
+    #     end_pos=editor.search('>', s, end, regexp=True)
+    #     if not end_pos:
+    #         #标签未闭合只跳过，不终止
+    #         pass
+    #     elif editor.get(f"{start_pos} linestart")=='|':
+    #         #多行模式
+    #         s=f"{end_pos}+1l linestart"
+    #         continue
+    #     else:
+    #         editor.tag_add('tag', start_pos)
+    #         editor.tag_add('tag', end_pos)
+    #         editor.tag_add('tag_name', f"{start_pos}+1c", end_pos)
+    #     s=f"{start_pos}+1l linestart"
     #注释
     #现已放置在第一个循环中，通过检测 | 触发，尽量减少循环次数
     # s=f"{__get_index_line(start)}.0"
@@ -318,8 +351,18 @@ def highlight(all=False):
     #     comment_e=f"{pos} lineend"
     #     editor.tag_add('comment', comment_s, comment_e)
     #     s=f"{pos}+1l linestart"
+    editor.tag_raise('tag')
+    editor.tag_raise('tag_name')
     editor.tag_raise('comment')
     editor.tag_raise('sel')
+
+# def __highlight(all=False,startpos='insert-50l linestart',endpos='insert-50l lineend'):
+#     while True:
+#         time.sleep(1.5)
+#         highlight(all,startpos,endpos)
+
+# highlighttimer=threading.Thread(target=__highlight)
+# highlighttimer=threading.Timer(1.5,highlight)
 
 
 #防止peer遭到更改，同时便于撤销与重做操作
@@ -356,6 +399,7 @@ def __start():
     already=True
     
     root=Toplevel()
+    root.withdraw()
     root.title('TinWriter')
     root.iconbitmap('./logo.ico')
     root.geometry('1200x750+350+100')
@@ -431,6 +475,8 @@ def __start():
     root.bind('<Control-f>',open_textfinder)
     root.bind('<Control-h>',open_textfinder_replace)
 
+    root.deiconify()
+
     load_tinfile()
     title_filename=os.path.basename(filename)
     root.title('TinWriter - '+title_filename)
@@ -446,3 +492,4 @@ def __start():
     codeinputer=utils.WriterCodeInputer(editor)
 
     root.focus_set()
+    # highlighttimer.start()

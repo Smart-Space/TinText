@@ -128,7 +128,7 @@ class TinTextNote(tk.Canvas):
         
     def __initialize(self,width,notes,font,markcolor,fg,markbg):
         for i in notes:
-            self.create_text((7,self.__get_endy()),text=i,font=font,fill=fg,anchor='nw',width=width-14)
+            self.create_text((7,self.__get_endy()+10),text=i,font=font,fill=fg,anchor='nw',width=width-14)
         bbox=self.bbox('all')
         back=self.create_polygon((bbox[0],5,width-2,5,width-2,bbox[3],bbox[0],bbox[3]),
         fill=markbg,outline=markbg,width=7)
@@ -154,7 +154,33 @@ class TinTextTable(TinUI):
             self.vbar.pack_forget()
             self.hbar.pack_forget()
         self.config(scrollregion=bbox,width=width,height=height)
+
+
+class TinTextPage(BasicTinUI):
+    #TinText的标签页
+    def __init__(self,master,names):
+        super().__init__(master,bg=master.cget('background'))
+        self.master=master
+        self.pages={}
+        self.names=names
+        self.__initialize()
+
+    def __initialize(self):
+        width=self.master.winfo_width()
+        height=self.master.winfo_height()/2
+        self.config(width=width,height=height)
+        self.notebook=self.add_notebook((0,0),width=width-10,height=height-50,
+        bg='white',activebg='white',onfg='white',onbg='#3884ff')[-2]
+        for name in self.names:
+            pageflag=self.notebook.addpage(title=name,cancancel=False)
+            self.pages[name]=pageflag
+        self.notebook.showpage(self.pages[self.names[0]])
     
+    def page(self,name):
+        #返回ui(BasicTinUI)
+        flag=self.pages[name]
+        return self.notebook.getuis(flag)[0]
+
 
 class TinTextPartAskFrame(ttk.Frame):
     #TinText<part>询问框

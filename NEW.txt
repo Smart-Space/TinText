@@ -2,8 +2,22 @@
 2024-
 1. <n>转义html时支持空行
 2. 优化<part>，避免卡死
-3. <wait>（<w>）暂停渲染
+3. 新增<wait>（<w>）暂停渲染
 4. 改进<stop>，避免卡死
+5. TinReader新建文件
+6. TinReader窗口菜单（新窗口、新建窗口、关闭窗口）
+7. <p>开头标记必须连续，以避免样式错误
+8. 转义成的html本地图片位置定向为“./data/imgs/.*”，此时，html文件不可传递，需要转为pdf等类型文件
+9. setting支持指定导出html的css位置 output.ini
+10. TinReader搜索，添加网页搜索。config中包含自定义
+11. 新增选项卡标签<pages>, </page>, </pages>
+12. TinReader关闭时，如果TinWriter已经打开，先执行TinWriter关闭程序
+13. code字体默认使用Consolas
+14. 修复TinWriter表格快捷导入的大行列出错
+15. 优化<note>长文本渲染
+16. 转译html标题为html文件名称
+17. 浅浅优化TinWriter标记高亮，目前没有好的高亮方法，短时间内不会进行编辑层面的大更新
+18. 优化窗口初始化效果，默认后台创建
 ==========1.3==========
 2024-9-15
 1. 新增<fl>（<follow>）开/关跟随显示
@@ -42,4 +56,6 @@
 8. 导入tinp文件
 ==========1.0==========
 2024-8-10
-发布
+重写TinReader（TinGroup）
+重写TinEngine
+发布TinText
