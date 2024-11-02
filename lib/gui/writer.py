@@ -8,7 +8,7 @@ from tkinter import Toplevel, StringVar
 from tkinter.messagebox import askyesno
 from tkinter.filedialog import asksaveasfilename
 import os
-import threading
+from concurrent.futures import ThreadPoolExecutor
 import time
 
 from tinui import BasicTinUI, TinUIXml, show_info, show_warning, show_question, show_success, show_error
@@ -173,25 +173,17 @@ def open_codeinputer(e):
 
 
 def on_text_change(e):
-    #接受editor的文本变化事件
-    #只匹配上下各十行
-    #创建或刷新进行Timer计时器，在只有一个线程的线程池子线程中匹配一百行
-    global SAVE
-    # highlighttimer.cancel()
-    # highlighttimer=threading.Timer(1.5,highlight)
-    # highlighttimer.start()
-    if editor.edit_modified()==0:
-       pass
-    else:
-        editor.edit_modified(0)
-        if SAVE:
-            SAVE=False
-            title_filename=os.path.basename(filename)
-            root.title('TinWriter - *'+title_filename)
-        else:
-            pass
-        highlight()
-        # highlight(startpos='insert linestart',endpos='insert lineend')
+    # Handle the text change event from the editor.
+    global SAVE, highlighttask
+    if not editor.edit_modified():
+        return
+    editor.edit_modified(0)
+    if SAVE:
+        SAVE = False
+        title_filename = os.path.basename(filename)
+        root.title(f'TinWriter - *{title_filename}')
+    if highlighttask.done():
+        highlighttask = highlightthreads.submit(highlight)
 
 def __get_index_line(index):
     #返回index所在行号
@@ -207,9 +199,6 @@ def highlight(all=False,startpos='insert-30l linestart',endpos='insert+30l linee
     else:#部分高亮
         start=editor.index(startpos)
         end=editor.index(endpos)
-    #清空区域样式
-    # for tag in color_tags:
-    #     editor.tag_remove(tag, start, end)
     #以下循环匹配，用s代指start
     #分隔符
     s=start
@@ -221,9 +210,10 @@ def highlight(all=False,startpos='insert-30l linestart',endpos='insert+30l linee
         pos=editor.search('(;|\||-|<|>)', s, end, regexp=True)
         if not pos:
             break
-        if __get_index_char(pos)=='0':
+        if __get_index_char(pos) == '0' and editor.get(pos, f"{pos}+2c") != '|-':
+            # 当位置为开头且不是|-时，才删除样式
             for tag in color_tags:
-                editor.tag_remove(tag, pos, f'{pos} lineend')
+                editor.tag_remove(tag, pos, f"{pos} lineend")
         s=None
         char=editor.get(pos)
         if char==';':
@@ -356,14 +346,6 @@ def highlight(all=False,startpos='insert-30l linestart',endpos='insert+30l linee
     editor.tag_raise('comment')
     editor.tag_raise('sel')
 
-# def __highlight(all=False,startpos='insert-50l linestart',endpos='insert-50l lineend'):
-#     while True:
-#         time.sleep(1.5)
-#         highlight(all,startpos,endpos)
-
-# highlighttimer=threading.Thread(target=__highlight)
-# highlighttimer=threading.Timer(1.5,highlight)
-
 
 #防止peer遭到更改，同时便于撤销与重做操作
 def on_focus(e):
@@ -394,7 +376,8 @@ def __start():
     #加载窗口
     global root, editor, tintext, peert, already,\
          textfinder, writerhelper, writerhtmlinputer,\
-            tabinputer, codeinputer
+         tabinputer, codeinputer,\
+         highlighttask, highlightthreads
 
     already=True
     
@@ -407,7 +390,6 @@ def __start():
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     center_x = int(screen_width / 2 - 1100 / 2)
-    # center_y = int(screen_height / 2 - 750 / 2)
     root.geometry('1100x750+%d+%d' % (center_x, 5))
     root.update()
 
@@ -492,4 +474,6 @@ def __start():
     codeinputer=utils.WriterCodeInputer(editor)
 
     root.focus_set()
-    # highlighttimer.start()
+    highlightthreads = ThreadPoolExecutor(2)
+    highlighttask = highlightthreads.submit(highlight)
+
