@@ -194,18 +194,17 @@ def __get_index_char(index):
 def highlight(all=False,startpos='insert-30l linestart',endpos='insert+30l lineend'):
     #代码高亮
     if all:#全部高亮
-        start='1.0'
+        s='1.0'
         end='end'
     else:#部分高亮
-        start=editor.index(startpos)
+        s=editor.index(startpos)
         end=editor.index(endpos)
     #以下循环匹配，用s代指start
     #分隔符
-    s=start
     linemode=False#多行模式
     tagflag=False#标签模式
-    tagstart=None
-    tagend=None
+    tagstart=None#标签起始位置
+    tagend=None#标签结束位置
     while True:
         pos=editor.search('(;|\||-|<|>)', s, end, regexp=True)
         if not pos:
@@ -214,7 +213,6 @@ def highlight(all=False,startpos='insert-30l linestart',endpos='insert+30l linee
             # 当位置为开头且不是|-时，才删除样式
             for tag in color_tags:
                 editor.tag_remove(tag, pos, f"{pos} lineend")
-        s=None
         char=editor.get(pos)
         if char==';':
             line_context=editor.get(f"{pos} linestart", f"{pos} lineend")

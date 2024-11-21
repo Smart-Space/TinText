@@ -410,13 +410,17 @@ class TinText(ScrolledText):
         width=self.winfo_width()
         height=self.winfo_height()
         frame=tk.Canvas(self,width=width,height=height*2/5,highlightthickness=0,relief='flat',background=self.cget('background'))
-        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat')
+        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat',borderwidth=0)
         htmlframe.place(x=0,y=0,width=width,height=height*2/5)
         htmlframe.load_html(html)
         htmlframe.add_css(self.css)#添加css样式
         self.widgets.append(frame)
         self.window_create('end',window=frame,align='center')
         self.insert('end','\n')
+        # 不建议在TinML中是用大量html片段，因此不做内容尺寸适配
+        # bboxview = htmlframe.html.bbox(htmlframe.html.node())
+        # frame.config(height=bboxview[3])
+        # htmlframe.place_configure(height=bboxview[3])
     
     def __render_code(self,name,code):
         #代码片段
@@ -431,7 +435,7 @@ class TinText(ScrolledText):
         width=self.winfo_width()
         height=self.winfo_height()
         frame=tk.Canvas(self,width=width,height=height*2/5,highlightthickness=0,relief='flat',background=self.cget('background'))
-        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat',borderwidth=0)
+        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat',borderwidth=0,vertical_scrollbar=False)
         htmlframe.place(x=0,y=0,width=width,height=height*2/5)
         html=highlight(code,lexer,HtmlFormatter())
         htmlframe.load_html(html)
@@ -439,6 +443,9 @@ class TinText(ScrolledText):
         self.widgets.append(frame)
         self.window_create('end',window=frame,align='center')
         self.insert('end','\n')
+        bboxview = htmlframe.html.bbox(htmlframe.html.node())
+        frame.config(height=bboxview[3])
+        htmlframe.place_configure(height=bboxview[3])
         return 1
     
     def __render_pages(self,names:tuple):
