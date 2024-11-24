@@ -5,6 +5,7 @@
 设计上作为TinReader的下一级，通过TinReader调用
 """
 from tkinter import Toplevel, StringVar
+from tkinter.font import Font
 from tkinter.messagebox import askyesno
 from tkinter.filedialog import asksaveasfilename
 import os
@@ -407,6 +408,8 @@ def __start():
         insertbackground='#000000', insertborderwidth=1, wrap='char', spacing1=3,
         undo=True)
     editor.place(x=0, y=40, width=750, height=690)
+    editor_font = Font(font=editor['font'])
+    editor.config(tabs=editor_font.measure('    '))# 四个空格
     # editor.bind('<<Undo>>', editor_undo) #避免重复操作
     # editor.bind('<<Redo>>', editor_redo)
     editor.bind('<MouseWheel>', peer_synchronize)

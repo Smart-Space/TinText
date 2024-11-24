@@ -311,6 +311,7 @@ def __start():
         '-',
         ('项目主页',lambda e: webbrowser.open('https://tintext.smart-space.com.cn/')),
         ('开发主页',lambda e: webbrowser.open('https://github.com/Smart-Space/TinText')),
+        ('意见反馈',lambda e: webbrowser.open('https://github.com/Smart-Space/TinText/issues')),
         ('发布页面',open_releas_page),
     )
 

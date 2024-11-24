@@ -32,12 +32,16 @@ TODO LIST：
 
 - 导出html的css支持（单独窗口，所有导出都在TinTranslator）
 
-- 
+- <p>高亮背景颜色限制在一行
+
+- 查找的高亮颜色置前
 
 - 持续增加标签支持与html转译支持
 
 - gif专门支持显示
 
 - 支持<tinfile>（<tinf>），导入data/tinfile下的TIN格式文件，可选择直接导入，或者导入在子TinText中
+
+- 或许在2.0版本更新UI的HD
 
 ……

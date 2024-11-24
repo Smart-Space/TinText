@@ -55,7 +55,6 @@
 <p>在TinML中，可以使用<n>或<note>来展现引用或说明文本。
 <n>引用&说明文本;
 |<n>&<note>的每一个标记内容均自动换行
-| 
 |当前，<n>标签还未与<p>标签整合|
 
 |-对应<ac>#anchor的锚点
@@ -70,9 +69,9 @@
 
 |-<part>第一个隐藏内容
 |-<p>hidden text I - 1
-|-|-<pt>第二个隐藏内容
-|-|-<p>hidden text II
-|-|-</pt>第二个隐藏内容
+|-<pt>第二个隐藏内容
+|-<p>hidden text II
+|-</pt>第二个隐藏内容
 |-<p>hidden text I - 2
 |-</part>第一个隐藏内容
 

@@ -120,7 +120,7 @@ class TinText(ScrolledText):
         """
         super().__init__(master, *args, **kw)
         self.config(borderwidth=0, relief="flat", insertbackground='#000000', insertborderwidth=1,
-            wrap='char', spacing1=10)
+            wrap='char', spacing1=5, spacing3=5)
         self.tinml=TinML()#tin标记记录
         self.tinparser=TinParser()#解析器
         self.balloon=Balloon()#提示框
@@ -458,7 +458,7 @@ class TinText(ScrolledText):
             ui=page.page(name)
             tintext=TinText(ui,font=self.cget('font'))
             tintext.config(borderwidth=0, relief="flat", insertbackground='#000000', insertborderwidth=1,
-            wrap='char', spacing1=10)
+            wrap='char')
             tintext.pack(fill='both',expand=True)
             self.pages.append(tintext)
 
@@ -765,7 +765,7 @@ class TinText(ScrolledText):
                     result=ttpaf.initial()
                     self.delete('end-3c','end')
                     self.parttag.edit(name,result)
-                    #TinML特性，不支持转译
+                    self.tinml.addtin('<part>',name=name)
                 case '</part>'|'</pt>':
                     #关闭一个文段块
                     if unit_length>3:
@@ -778,6 +778,7 @@ class TinText(ScrolledText):
                         self.__render_err(err)
                         break
                     self.parttag.delete(name)
+                    self.tinml.addtin('</part>',name=name)
                 case '<fl>'|'<follow>':
                     #<fl>
                     #开/关跟随显示

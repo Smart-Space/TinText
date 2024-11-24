@@ -42,68 +42,58 @@ class TinTranslator():
         self.tinml=tinml
         self.doc=None
         
+        # <p>
         self.tinPmark=('*','/','_','-','=','!')
         self.tinPlink_re=re.compile('.*?!\[(.*?)\]\((..*?)\)')
+
+        # <part>
+        self.page_id = 0
+        self.page_group_name = 0
 
         with open('./data/render/code.css','r',encoding='utf-8') as f:
             self.code_css=f.read()
     
     def __tinP_to_html(self,texts):
         #tin段落转html段落
-        res=[]
+        res = []
+        tin_to_html = {
+            '*': lambda x: b(x),
+            '/': lambda x: i(x),
+            '_': lambda x: u(x),
+            '-': lambda x: s(x),
+            '=': lambda x: mark(x),
+        }
         for text in texts:
-            if text=='':
+            if text == '':
                 res.append(br())
-            elif text[0]==' ':
+            elif text[0] == ' ':
                 res.append(text[1:])
             elif text[0] not in self.tinPmark:
                 res.append(text)
             else:
-                head_mark=text[:6]
-                head_num=0
-                now_p=None#初始化，空
+                head_mark = text[:6]
+                head_num = 0
                 for tag_char in head_mark:
                     if tag_char not in self.tinPmark:
                         break
-                    else:
-                        head_num+=1
-                head_mark=head_mark[:head_num]
-                #开始具体转义html<p>
+                    head_num += 1
+                head_mark = head_mark[:head_num]
+                # 处理链接
                 if '!' in head_mark:
-                    result=self.tinPlink_re.match(text)
+                    result = self.tinPlink_re.match(text)
                     if result:
-                        url_text,url=result.groups()
-                        if url_text=='':
-                            url_text=url
-                        now_p=a(url_text,href=url)
+                        url_text, url = result.groups()
+                        url_text = url if url_text == '' else url_text
+                        text = a(url_text, href=url)
                     else:
-                        pass
-                if '*' in head_mark:
-                    if now_p:
-                        now_p=b(now_p)
-                    else:
-                        now_p=b(text[head_num:])
-                if '/' in head_mark:
-                    if now_p:
-                        now_p=i(now_p)
-                    else:
-                        now_p=i(text[head_num:])
-                if '_' in head_mark:
-                    if now_p:
-                        now_p=u(now_p)
-                    else:
-                        now_p=u(text[head_num:])
-                if '-' in head_mark:
-                    if now_p:
-                        now_p=s(now_p)
-                    else:
-                        now_p=s(text[head_num:])
-                if '=' in head_mark:
-                    if now_p:
-                        now_p=mark(now_p)
-                    else:
-                        now_p=mark(text[head_num:])
-                res.append(now_p)
+                        text = text[head_num:]
+                else:
+                    text = text[head_num:]
+                # 应用格式化
+                for fmt_char, fmt_func in tin_to_html.items():
+                    if fmt_char in head_mark:
+                        text = fmt_func(text)
+                res.append(text)
         return res
 
     def tohtml(self,_title='TinText',_style='',code_style=True):
@@ -190,6 +180,17 @@ class TinTranslator():
                     _table_body.add(_table_row)
                 _table.add(_table_body)
                 _body.add(_table)
+            elif tag == '<part>':
+                #文本块
+                name = kw['name']
+                _tempbody = details()
+                _body.add(_tempbody)
+                _body = _tempbody
+                _body.add(summary(name))
+            elif tag == '</part>':
+                #文本块结束标志
+                #注意：这里不会判断name参数，因为tinmlBody使用栈结构
+                _body = _body.parent
             elif tag == '<ac>':
                 #锚点
                 name=kw['name']
@@ -269,9 +270,10 @@ class TinTranslator():
                 for i in range(0,len(names)):
                     tab=div(_class='tab')
                     if i==0:
-                        tab.add(input_(type='radio',id=f'tag-{i}',name='tab-group-1',checked=''))
+                        tab.add(input_(type='radio',id=f'tag-{self.page_id}',name=f'tab-group-{self.page_group_name}',checked=''))
                     else:
-                        tab.add(input_(type='radio',id=f'tag-{i}',name='tab-group-1'))
+                        tab.add(input_(type='radio',id=f'tag-{self.page_id}',name=f'tab-group-{self.page_group_name}'))
+                    self.page_id += 1
                     tab.add(label(names[i],_for=f'tag-{i}'))
                     tinml=pages[i].tinml
                     translator=TinTranslator(tinml)
@@ -280,6 +282,7 @@ class TinTranslator():
                         attr(_class='tabcontent')
                     tab.add(tabcontentdiv)
                     tabsview.add(tab)
+                self.page_group_name += 1
                 _body.add(tabsview)
         return doc
     

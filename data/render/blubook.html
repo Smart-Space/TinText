@@ -233,6 +233,31 @@ blockquote::before {
   border-bottom-left-radius: 6px;
 }
 
+/*****PartView*****/
+details {
+  border: 1px solid #aaa;
+  border-left-width: 3px;
+  border-left-color: blue;
+  border-radius: 4px;
+  padding: 0.5em 0.5em 0;
+}
+
+summary {
+  font-weight: bold;
+  color: blue;
+  margin: -0.5em -0.5em 0;
+  padding: 0.5em;
+}
+
+details[open] {
+  padding: 0.5em;
+}
+
+details[open] summary {
+  border-bottom: 1px solid #aaa;
+  margin-bottom: 0.5em;
+}
+
 div{
 width: 50%;
 margin: auto;
@@ -384,7 +409,6 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <blockquote>
         <p>引用&amp;说明文本</p>
         <p>&lt;n&gt;&amp;&lt;note&gt;的每一个标记内容均自动换行</p>
-        <p> </p>
         <p>当前，&lt;n&gt;标签还未与&lt;p&gt;标签整合</p>
       </blockquote>
       <a id="table"></a>
@@ -469,7 +493,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <p>使用&lt;pages&gt;及组合标签，能够插入标签页，呈现多页TinML内容。</p>
       <div class="tabs">
         <div class="tab">
-          <input checked="" id="tag-0" name="tab-group-1" type="radio">
+          <input checked="" id="tag-0" name="tab-group-0" type="radio">
           <label for="tag-0">Tin</label>
           <div class="tabcontent">
             <h3>Tin</h3>
@@ -480,7 +504,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
           </div>
         </div>
         <div class="tab">
-          <input id="tag-1" name="tab-group-1" type="radio">
+          <input id="tag-1" name="tab-group-0" type="radio">
           <label for="tag-1">TinML</label>
           <div class="tabcontent">
             <h3>TinML</h3>
