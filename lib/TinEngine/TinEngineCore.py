@@ -157,7 +157,7 @@ class TinText(ScrolledText):
             '6':self.font_size+2
         }
         #文本块开头标记
-        self.paragraph_mark=('*','/','_','-','!','=')
+        self.paragraph_mark=('*','/','_','-','!','=','^','&','#')
         self.paragraph_link_re=re.compile('.*?!\[(.*?)\]\((..*?)\)')
         #==========
         #基本样式
@@ -210,6 +210,9 @@ class TinText(ScrolledText):
         self.PAGES_TAG=False#是否在标签页面内
         self.pages :list[TinText] =[]#当前页面TinText列表
         self.page_content=[]#当前页面内容
+    
+    def __yview_scroll(self,event):# 用于子控件绑定纵向滚动事件
+        self.yview_scroll(int(-1*(event.delta/120)), "units")
         
     def __render_err(self,msg,index='end'):
         self.insert(index,msg,'error')
@@ -228,10 +231,13 @@ class TinText(ScrolledText):
         elif text[0] not in self.paragraph_mark:
             self.insert('end',text,'paragraph')
         else:
-            head_mark=text[:6]
+            head_mark=text[:9]
             head_num=0
+            paragraph_font_size=self.font_size# 默认字体大小
             p_tags=[]
+            OFFSET = 0# 上下标偏移量
             HIGHLIGHT=False
+            CODE=False
             #开头标记应当是连续的
             for tag_char in head_mark:
                 if tag_char not in self.paragraph_mark:
@@ -249,7 +255,17 @@ class TinText(ScrolledText):
             if '-' in head_mark:
                 p_tags.append('overstrike')
             if '=' in head_mark:
+                # = 和 # 标志只能存在一个
                 HIGHLIGHT=True
+            elif '#' in head_mark:
+                CODE=True
+            if '^' in head_mark:
+                # ^ 和 & 标志只能存在一个
+                OFFSET=5
+                paragraph_font_size=int(self.font_size/3*2)
+            elif '&' in head_mark:
+                OFFSET=-5
+                paragraph_font_size=int(self.font_size/3*2)
             if '!' in head_mark:
                 result=self.paragraph_link_re.match(text)
                 if result==None:
@@ -264,7 +280,7 @@ class TinText(ScrolledText):
                     tag_name=f'"link-{index}"'
                     if 'underline' not in p_tags:
                         p_tags.append('underline')
-                    self.tag_config(tag_name,font=(self.font_family,self.font_size,*p_tags))
+                    self.tag_config(tag_name,font=(self.font_family,paragraph_font_size,*p_tags),offset=OFFSET)
                     self.tag_bind(tag_name,'<Button-1>',lambda e:webbrowser.open(url))
                     self.tag_bind(tag_name,'<Enter>',lambda e:self.balloon.show(e,url))
                     self.tag_bind(tag_name,'<Leave>',lambda e:self.balloon.hide(e))
@@ -274,9 +290,11 @@ class TinText(ScrolledText):
                     return
             index=self.index('end-1c')
             tag_name=f'"paragraph-{index}"'
-            self.tag_config(tag_name,font=(self.font_family,self.font_size,*p_tags))
+            self.tag_config(tag_name,font=(self.font_family,paragraph_font_size,*p_tags),offset=OFFSET)
             if HIGHLIGHT:
-                self.tag_config(tag_name,background='#ffff00')
+                self.tag_config(tag_name,background='#87cefa')
+            elif CODE:
+                self.tag_config(tag_name,background='#f2f2f2')
             self.insert('end',text[head_num:],('paragraph',tag_name))
         if newline:
             self.insert('end','\n')
@@ -346,6 +364,7 @@ class TinText(ScrolledText):
         self.update()
         width=self.winfo_width()
         note=TinTextNote(self,width*0.9,notes,self.cget('font'),'#5969e0','#7e7e7e',self.cget('background'),'#f9f9f9')
+        note.bind('<MouseWheel>',self.__yview_scroll)
         self.widgets.append(note)
         self.window_create('end',window=note,align='center',padx=width*0.05)
         self.insert('end','\n')
@@ -355,6 +374,7 @@ class TinText(ScrolledText):
         self.update()
         width=self.winfo_width()
         table=TinTextTable(self,width,self.cget('background'),data,self.cget('font'))
+        table.bind('<MouseWheel>',self.__yview_scroll)
         self.widgets.append(table)
         self.window_create('end',window=table.frame,align='center')
         self.insert('end','\n')
@@ -435,7 +455,8 @@ class TinText(ScrolledText):
         width=self.winfo_width()
         height=self.winfo_height()
         frame=tk.Canvas(self,width=width,height=height*2/5,highlightthickness=0,relief='flat',background=self.cget('background'))
-        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat',borderwidth=0,vertical_scrollbar=False)
+        htmlframe=HtmlFrame(frame,messages_enabled=False,relief='flat',borderwidth=0,vertical_scrollbar=False,horizontal_scrollbar=True)
+        # htmlframe.bind('<MouseWheel>',self.__yview_scroll)
         htmlframe.place(x=0,y=0,width=width,height=height*2/5)
         html=highlight(code,lexer,HtmlFormatter())
         htmlframe.load_html(html)

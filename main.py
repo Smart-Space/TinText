@@ -1,11 +1,14 @@
 """
-TinText Tin富文本标记语言
+TinText Tin富文本标记语言实现平台/软件
 基于python-TinUI(tkinter)，重塑于TinReader
 
 project-url: https://tintext.smart-space.com.cn
 project-dev: https://github.com/smart-space/tintext
 
 Copyright since 2024 Junming Zhang(Smart-Space) <smart-space@qq.com|tsan-zane@outlook.com>
+基于GPLv3协议发布，见gpl-3.0.md
+
+其它第三方库开源协议见./data/licenses/*。注意，html2text是不必要的，TinText tin转md 功能可作为拓展使用
 """
 import platform
 # import ctypes

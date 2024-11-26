@@ -228,6 +228,11 @@ blockquote::before {
   border-bottom-left-radius: 6px;
 }
 
+code {
+  background-color: #f2f2f2;
+  font-family: 'Consolas';
+}
+
 /*****PartView*****/
 details {
   border: 1px solid #aaa;

@@ -42,7 +42,7 @@ def sel_type(tintype):
         log('已选择[TINP (加密)]')
     elif MAKE_TYPE=='TINX (集成)':
         log('已选择[TINX (集成)]')
-        ...#working
+    ...#working
 
 
 def __gen():

@@ -43,7 +43,7 @@ class TinTranslator():
         self.doc=None
         
         # <p>
-        self.tinPmark=('*','/','_','-','=','!')
+        self.tinPmark=('*','/','_','-','=','!','^','&','#')
         self.tinPlink_re=re.compile('.*?!\[(.*?)\]\((..*?)\)')
 
         # <part>
@@ -62,6 +62,9 @@ class TinTranslator():
             '_': lambda x: u(x),
             '-': lambda x: s(x),
             '=': lambda x: mark(x),
+            '^': lambda x: sup(x),
+            '&': lambda x: sub(x),
+            '#': lambda x: code(x),
         }
         for text in texts:
             if text == '':
@@ -71,7 +74,7 @@ class TinTranslator():
             elif text[0] not in self.tinPmark:
                 res.append(text)
             else:
-                head_mark = text[:6]
+                head_mark = text[:9]
                 head_num = 0
                 for tag_char in head_mark:
                     if tag_char not in self.tinPmark:
