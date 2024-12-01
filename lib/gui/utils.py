@@ -167,6 +167,9 @@ class TextFinder(Toplevel):
         self.check_loop_btn=self.tinuixml.tags['check_loop_button'][-2]
         self.check_replaceall_btn=self.tinuixml.tags['check_replaceall_button'][-2]
 
+        self.entry_search.bind('<Return>', self.go_to_search)
+        self.entry_replace.bind('<Return>', self.go_to_replace)
+
         if self.searchmode.getboolean('case'): self.check_case_btn.on()
         if self.searchmode.getboolean('regexp'): self.check_regexp_btn.on()
         if self.searchmode.getboolean('loop'): self.check_loop_btn.on()
@@ -178,6 +181,7 @@ class TextFinder(Toplevel):
         查找文本
         """
         self.text.tag_remove('found','1.0','end')
+        self.text.tag_raise('found')
         text=self.entry_search.get()
         if text=='':
             return None, None

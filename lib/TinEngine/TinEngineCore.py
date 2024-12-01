@@ -465,8 +465,8 @@ class TinText(ScrolledText):
         self.window_create('end',window=frame,align='center')
         self.insert('end','\n')
         bboxview = htmlframe.html.bbox(htmlframe.html.node())
-        frame.config(height=bboxview[3])
-        htmlframe.place_configure(height=bboxview[3])
+        frame.config(height=bboxview[3]+20)
+        htmlframe.place_configure(height=bboxview[3]+20)
         return 1
     
     def __render_pages(self,names:tuple):
