@@ -78,8 +78,11 @@ class TinTranslator():
                 head_num = 0
                 for tag_char in head_mark:
                     if tag_char not in self.tinPmark:
+                        if tag_char == ' ':
+                            head_num += 1
                         break
-                    head_num += 1
+                    else:
+                        head_num += 1
                 head_mark = head_mark[:head_num]
                 # 处理链接
                 if '!' in head_mark:

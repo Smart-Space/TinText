@@ -240,10 +240,14 @@ class TinText(ScrolledText):
             CODE=False
             #开头标记应当是连续的
             for tag_char in head_mark:
+                # 当这个字符不在标记列表中时，退出循环
+                # 如果是空格，则视为标识阻断，增加一个字符的偏移量
                 if tag_char not in self.paragraph_mark:
+                    if tag_char == ' ':
+                        head_num += 1
                     break
                 else:
-                    head_num+=1
+                    head_num += 1
             head_mark=head_mark[:head_num]#去掉多余的非标记
             #开头标记必须连续
             if '*' in head_mark:
