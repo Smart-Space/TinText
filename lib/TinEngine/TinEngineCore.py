@@ -978,13 +978,18 @@ class TinText(ScrolledText):
         print(self.tinml)
 
     def thread_render(self,tintext='<tin>TinText',wait=False):
-        #创建一个子线程，渲染tin标记
+        # 创建一个子线程，渲染tin标记
+        # 如果当前正在渲染，则返回False，不做缓存处理
+        # 否则，启动子线程，并返回True
         if not self.RENDERING:
             self.render_thread=threading.Thread(target=self.render,args=(tintext,))
             self.render_thread.start()
             #是否等待
             if wait:
                 self.render_thread.join()
+            return True
+        else:
+            return False
     
     def pause_thread_render(self):
         #暂停渲染
