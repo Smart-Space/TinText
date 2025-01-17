@@ -138,6 +138,7 @@ def reopenfile(e):#重载当前文件
 def open_writer(e):#打开编辑器
     global WRITER
     if filename==None:#如果没有打开文件，则不允许打开编辑器
+        show_info(root,'编辑器','请先打开文件')
         return
     if tintype=='TINP':
         show_info(root,'TINP文件','无法打开编辑器，因为当前文件为TINP文件')
