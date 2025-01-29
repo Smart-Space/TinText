@@ -12,11 +12,58 @@ config_files=(
     'theme', # settings/theme.ini
 )
 
+ver = '1.5'
+
+origin_general = f'''[Version]
+ver = {ver}
+
+[ReaderSearchMode]
+loop = True
+regexp = False
+case = True
+webengine = 
+
+[WriterSearchMode]
+loop = True
+regexp = False
+case = True
+replace_all = True
+'''
+
+origin_output = '''[html]
+css = ./data/render/blubook.css
+'''
+
+origin_theme = '''; not used, just for testing
+[Reader]
+theme = light
+
+[Writer]
+theme = light
+
+[Maker]
+theme = light
+'''
+
 def initial():
     global config_parsers
+    # 判断./data/settings目录是否存在，不存在则创建
+    if not os.path.exists('./data/settings'):
+        os.makedirs('./data/settings')
+        # 创建配置文件
+        with open('./data/settings/general.ini', 'w', encoding='utf-8') as f:
+            f.write(origin_general)
+        with open('./data/settings/output.ini', 'w', encoding='utf-8') as f:
+            f.write(origin_output)
+        with open('./data/settings/theme.ini', 'w', encoding='utf-8') as f:
+            f.write(origin_theme)
     config_parsers=dict()
     for i in config_files:
         config_parsers[i]=SettingDict(f'{i}.ini')
+    if config_parsers['general'].get('Version','ver') != ver:
+        # 版本不同，更新配置文件
+        config_parsers['general'].set('Version','ver', ver)
+        config_parsers['general'].save()
 
 def loop(command,*args):
     #处理 config 命令

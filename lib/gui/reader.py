@@ -253,10 +253,8 @@ def open_aboutwindow(e):#打开关于窗口
     aboutwindow.show()
 
 def check_newversion(e):#检查新版本
-    root.config(cursor='watch')
     version=process.version('check')
     nowversion=process.config("get","general","Version","ver")
-    root.config(cursor='arrow')
     show_info(root,'版本检测',f'当前版本：{nowversion}\n最新版本：{version}')
 
 def open_releas_page(e):#打开发布页面

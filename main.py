@@ -16,10 +16,8 @@ import tkinter as tk
 import sys
 import os
 (os.path.dirname(os.path.realpath(__file__)))
-from multiprocessing import freeze_support, Process, Lock, Pipe
 
 import tkinterweb
-from tinui import BasicTinUI, TinUIXml
 
 import gui
 import process

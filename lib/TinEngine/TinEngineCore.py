@@ -6,11 +6,8 @@ tin2html、gui/utils/writerhelper
 
 """
 import tkinter as tk
-from tkinter import ttk
-# from tkinter.filedialog import askdirectory
 import tkinter.font as tkfont
 import webbrowser
-import subprocess
 import os
 import io
 import re
@@ -18,13 +15,12 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 # from tempfile import NamedTemporaryFile
 
-from tkinterweb.htmlwidgets import HtmlFrame, HtmlLabel
+from tkinterweb.htmlwidgets import HtmlFrame
 from PIL import Image,ImageTk# require
 import requests
 from pygments.lexers import get_lexer_by_name, get_all_lexers
 from pygments.formatters import HtmlFormatter
 from pygments import highlight
-from tinui import BasicTinUI,show_info,show_success,show_warning,show_error,show_question
 
 from .tin2html import TinML
 from .error import NoLinesMode, TagNoMatch, NoLinesMark, AlreadyStartLine
@@ -968,7 +964,7 @@ class TinText(ScrolledText):
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)
                     break
-            self.update()
+            self.update_idletasks()
             if FOLLOW_TAG:
                 self.see('end')
         wait(img_threadings,return_when=ALL_COMPLETED)

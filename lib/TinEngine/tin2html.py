@@ -3,7 +3,6 @@ tin->html工具类
 """
 import re
 import sys
-from tempfile import NamedTemporaryFile
 
 import dominate
 from dominate.tags import *

@@ -233,6 +233,11 @@ blockquote::before {
   border-bottom-left-radius: 6px;
 }
 
+code {
+  background-color: #f2f2f2;
+  font-family: 'Consolas';
+}
+
 /*****PartView*****/
 details {
   border: 1px solid #aaa;
@@ -380,7 +385,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
                 <b>普通文本</b>
               </i></u>
           </s>
-        </mark>直接使用&lt;p&gt;来表示，结尾会自带换行。
+        </mark>
+        <sup>1</sup>
+        <sub>2</sub>直接使用&lt;p&gt;来表示，结尾会自带换行。
       </p>
       <p>下方暂停一秒。</p>
       <p>这又是一个普通文本。</p>
@@ -391,21 +398,29 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <p>
         <a href="https://github.com/">GitHub</a>
       </p>
-      <p>&lt;lnk&gt;会自带换行，若不想要换行，可使用&lt;p&gt;的!开头标记: <i>
+      <p>&lt;lnk&gt;会自带换行，若不想要换行，可使用
+        <code>&lt;p&gt;</code>的!开头标记: <i>
           <b>
             <a href="www.baidu.com">www.baidu.com</a>
           </b>
-        </i>。</p>
+        </i>。
+      </p>
       <p><br></p>
-      <p>使用&lt;img&gt;标签载入网络图片，若本地存在同名图片，优先使用本地。
+      <p>使用
+        <code>&lt;img&gt;</code>标签载入网络图片，若本地存在同名图片，优先使用本地。
         <b>注意，如果文件名为空，则直接使用链接。</b><i>&lt;img&gt;本身不换行。</i>
       </p>
       <img alt="" height="200" src="https://smart-space.com.cn/img/TinLogo.png" width="100%">
       <p><br></p>
-      <p>使用&lt;sp&gt;标签生成分割线↓</p>
+      <p>使用
+        <code>&lt;sp&gt;</code>标签生成分割线↓
+      </p>
       <hr>
       <h1>（&lt;title&gt;可用&lt;t&gt;替代，其它同义标记详见tin标记语言说明）</h1>
-      <p>在TinML中，可以使用&lt;n&gt;或&lt;note&gt;来展现引用或说明文本。</p>
+      <p>在TinML中，可以使用
+        <code>&lt;n&gt;</code>或
+        <code>&lt;note&gt;</code>来展现引用或说明文本。
+      </p>
       <blockquote>
         <p>引用&amp;说明文本</p>
         <p>&lt;n&gt;&amp;&lt;note&gt;的每一个标记内容均自动换行</p>
@@ -413,7 +428,10 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       </blockquote>
       <a id="table"></a>
       <p><br></p>
-      <p>TinML中使用&lt;tb&gt;来开启和录入表格数据，&lt;/tb&gt;结束表格内容录入，并渲染表格。</p>
+      <p>TinML中使用
+        <code>&lt;tb&gt;</code>来开启和录入表格数据，
+        <code>&lt;/tb&gt;</code>结束表格内容录入，并渲染表格。
+      </p>
       <table>
         <thead>
           <tr>
@@ -476,7 +494,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <p><br></p>
       <p>TinML支持显示代码片段，支持的语言类型应为小写全称。在TinText应用中，渲染的样式来自 
         <u>.\data\render\code.css</u>，且支持Pygments中的语言。
-      </p><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="o">*</span>
+      </p><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">root</span><span class="o">=</span><span class="n">Tk</span><span class="p">()</span>
 <span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
@@ -490,7 +508,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </pre></div>
 
       <p><br></p>
-      <p>使用&lt;pages&gt;及组合标签，能够插入标签页，呈现多页TinML内容。</p>
+      <p>使用
+        <code>&lt;pages&gt;</code>及组合标签，能够插入标签页，呈现多页TinML内容。
+      </p>
       <div class="tabs">
         <div class="tab">
           <input checked="" id="tag-0" name="tab-group-0" type="radio">

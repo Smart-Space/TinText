@@ -3,7 +3,6 @@
 TinText的后端进程-版本信息
 """
 import webbrowser
-from threading import Thread
 
 import requests
 
