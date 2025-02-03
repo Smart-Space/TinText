@@ -42,13 +42,13 @@ class TinParser():
         self.tag_start_attrs_tuple=('|','-')
         #特殊标记|，-，;
 
-    def __tran_spec(self,text):
-        #特殊标记转义 translate special marks
-        # text=text.replace('%SEM%',';')#Semicolon, @SEM@->;
-        text=text.replace('%VEB%','|')#Vertical bar, @VEB@->|
-        return text
+    # def __tran_spec(self,text):
+    #     #特殊标记转义 translate special marks
+    #     # text=text.replace('%SEM%',';')#Semicolon, @SEM@->;
+    #     text=text.replace('%VEB%','|')#Vertical bar, @VEB@->|
+    #     return text
 
-    def parse(self,tin):
+    def parse(self,tin:str):
         #分析
         TAGATTR=False#标签参数注入，用于多行表达
         line_count=0#行数
@@ -119,6 +119,7 @@ class TinText(ScrolledText):
             wrap='char', spacing1=5, spacing3=5)
         self.tinml=TinML()#tin标记记录
         self.tinparser=TinParser()#解析器
+        self.render_queue = list()#渲染队列
         self.balloon=Balloon()#提示框
         self.img_thread_pool=ThreadPoolExecutor(max_workers=10)#图片下载线程池
         self.render_thread=None#渲染线程
@@ -126,6 +127,9 @@ class TinText(ScrolledText):
         self.render_flag.set()
         self.bind('<<StopRender>>', lambda e:self.pause_thread_render())
         self.bind('<<ResumeRender>>', lambda e:self.resume_thread_render())
+        self.bind('<<CompleteRender>>', lambda e:self.complete_thread_render())
+        # # 绑定窗口销毁
+        # self.bind('<Destroy>', lambda e:self.destroy_event())
         self.__initialize()
 
     def __initialize(self):
@@ -145,7 +149,8 @@ class TinText(ScrolledText):
         self.font_family=font_info[0]
         self.font_size=int(font_info[1])
         self.title_level=('1','2','3','4','5','6')
-        self.title_size_dict={'1':self.font_size+12,
+        self.title_size_dict={
+            '1':self.font_size+12,
             '2':self.font_size+10,
             '3':self.font_size+8,
             '4':self.font_size+6,
@@ -294,7 +299,7 @@ class TinText(ScrolledText):
             if HIGHLIGHT:
                 self.tag_config(tag_name,background='#87cefa')
             elif CODE:
-                self.tag_config(tag_name,background='#f2f2f2')
+                self.tag_config(tag_name,background='#ecf1f5')
             self.insert('end',text[head_num:],('paragraph',tag_name))
         if newline:
             self.insert('end','\n')
@@ -483,8 +488,10 @@ class TinText(ScrolledText):
             tintext.pack(fill='both',expand=True)
             self.pages.append(tintext)
 
-    def render(self,tintext='<tin>TinText',new=True):
+    def render(self, tintext='<tin>TinText', new=True, is_thread_tag=False):
         #渲染tin标记
+        # new::是否为新的渲染任务
+        # is_thread_tag::是否在新线程中渲染（仅作为标志，不具有子线程渲染功能）
         self.RENDERING=True
         img_threadings=list()
         tinconts=self.tinparser.parse(tintext)
@@ -972,27 +979,50 @@ class TinText(ScrolledText):
         self.config(state='disabled')
         self.RENDERING=False
         print(self.tinml)
+        if is_thread_tag:
+            # 如果在子线程中渲染，则触发事件
+            # 这样做是为了避免持续在子线程中渲染，而是使用新的子线程
+            self.event_generate('<<CompleteRender>>')
 
-    def thread_render(self,tintext='<tin>TinText',wait=False):
+    def thread_render(self, tintext='<tin>TinText', wait=False, new=True, in_queue=False):
         # 创建一个子线程，渲染tin标记
-        # 如果当前正在渲染，则返回False，不做缓存处理
+        # 如果当前正在渲染，则返回False
         # 否则，启动子线程，并返回True
+        # in_queue为True时，添加到渲染队列，该方法只在子线程渲染中起作用
         if not self.RENDERING:
-            self.render_thread=threading.Thread(target=self.render,args=(tintext,))
+            self.render_thread = threading.Thread(target=self.render, args=(tintext,new,True))
             self.render_thread.start()
-            #是否等待
+            # 是否等待
             if wait:
                 self.render_thread.join()
+            return True
+        elif in_queue:
+            # 如果选择添加到渲染队列，**当前**不支持wait, new参数
+            self.render_queue.append(tintext)
             return True
         else:
             return False
     
     def pause_thread_render(self):
-        #暂停渲染
+        # 暂停渲染
         # self.render_flag.clear()
         ...
 
     def resume_thread_render(self):
-        #恢复渲染
+        # 恢复渲染
         self.render_flag.set()
-
+    
+    def complete_thread_render(self):
+        # 完成子线程渲染
+        # 如果渲染队列不为空，则渲染队列中的第一个tin标记
+        # 如果选择添加到渲染队列，**当前**不支持wait, new参数
+        if len(self.render_queue) > 0:
+            next_tintext = self.render_queue.pop(0)
+            self.render_thread = threading.Thread(target=self.render, args=(next_tintext,False,True))
+            self.render_thread.start()
+    
+    # def destroy_event(self):
+    #     # 销毁事件
+    #     # 如果存在子线程渲染，则等待子线程结束
+    #     if self.render_thread.is_alive():
+    #         self.render_thread.join()

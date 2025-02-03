@@ -12,7 +12,7 @@ config_files=(
     'theme', # settings/theme.ini
 )
 
-ver = '1.5'
+ver = '1.6'
 
 origin_general = f'''[Version]
 ver = {ver}

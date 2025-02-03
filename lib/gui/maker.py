@@ -3,9 +3,7 @@
 TinText的tinp、tinx生成器，即TinMaker
 """
 from tkinter import Toplevel
-from tkinter.filedialog import asksaveasfilename
 import os
-import locale
 
 from tinui import BasicTinUI, TinUIXml, show_info, show_success, show_warning, show_error
 from lib.structure.makeengine import TinpMakeEngine, TinxMakeEngine

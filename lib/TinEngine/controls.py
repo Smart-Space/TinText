@@ -130,9 +130,9 @@ class TinTextNote(tk.Canvas):
         for i in notes:
             self.create_text((7,self.__get_endy()+10),text=i,font=font,fill=fg,anchor='nw',width=width-14)
         bbox=self.bbox('all')
-        back=self.create_polygon((bbox[0],5,width-2,5,width-2,bbox[3],bbox[0],bbox[3]),
+        back=self.create_polygon((bbox[0],5,width-2,5,width-2,bbox[3]+10,bbox[0],bbox[3]+10),
         fill=markbg,outline=markbg,width=7)
-        self.create_line((2,5,2,bbox[3]),fill=markcolor,width=3,capstyle='round',joinstyle='round')
+        self.create_line((2,5,2,bbox[3]+10),fill=markcolor,width=3,capstyle='round',joinstyle='round')
         self.lower(back)
         bbox=self.bbox('all')
         height=bbox[3]-bbox[1]
@@ -200,7 +200,7 @@ class TinTextPartAskFrame(ttk.Frame):
         bbox=self.tinui.bbox('all')
         endy=bbox[3]+3
         self.tinui.add_button2((w/2-2,endy),minwidth=w/2-14,text='YES',command=self.yes,anchor='ne')
-        self.tinui.add_button2((w/2+2,endy),minwidth=w/2-14,text='NO',command=self.no,anchor='nw')
+        self.tinui.add_button2((w/2,endy),minwidth=w/2-14,text='NO',command=self.no,anchor='nw')
         bbox=self.tinui.bbox('all')
         self.tinui.config(scrollregion=bbox)
 

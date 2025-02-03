@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk
 # import ctypes
 import os
-from threading import Thread, Timer
+from threading import Thread
 from time import sleep
 import webbrowser
 from urllib.request import quote
@@ -409,10 +409,17 @@ class WriterHtmlInputer(Toplevel):
 
         self.tinui=BasicTinUI(self)
         self.tinui.place(x=0,y=320,width=500,height=35)
-        self.tinui.add_paragraph((5,5),text='输入HTML代码以插入TinML格式代码到编辑器中')
-        self.tinui.add_button2((495,15),text='插入至编辑器',anchor='e',command=self.inserthtml)
+        self.tinui.add_paragraph((5,17),text='输入HTML代码以插入到编辑器中',anchor='w')
+        self.tinui.add_button2((340,17),text='清空',anchor='w',command=self.clean_all)
+        self.tinui.add_button2((495,17),text='插入至编辑器',anchor='e',command=self.inserthtml)
         
         self.editor=editor
+    
+    def clean_all(self, e):
+        """
+        clean all text
+        """
+        self.text.delete('1.0','end')
     
     def inserthtml(self,e):
         """
@@ -427,6 +434,7 @@ class WriterHtmlInputer(Toplevel):
         for text in texts[1:]:
             self.editor.insert('insert',f'\n|{text}')
         self.editor.insert('insert','|\n')
+        self.close()
     
     def close(self):
         """
@@ -548,6 +556,7 @@ class WriterTabInputer(Toplevel):
         for _ in range(ynum):#行数
             self.editor.insert('insert',f'<tb>{"|".join([" "]*xnum)}\n')
         self.editor.insert('insert',f'</tb>\n')
+        self.close()
 
 
 class WriterCodeInputer(Toplevel):
@@ -576,11 +585,18 @@ class WriterCodeInputer(Toplevel):
         with open('./pages/writer-codeinputer.xml','r',encoding='utf-8') as f:
             xml=f.read()
         self.tinuixml=TinUIXml(self.tinui)
+        self.tinuixml.funcs['clean_code']=self.clean_code
         self.tinuixml.funcs['set_code']=self.set_code
         self.tinuixml.loadxml(xml)
         self.entry=self.tinuixml.tags['entry'][0]
 
         self.editor=editor
+    
+    def clean_code(self, e):
+        """
+        clean all text
+        """
+        self.text.delete('1.0','end')
     
     def set_code(self,e):
         #插入TinML <code>
@@ -593,6 +609,7 @@ class WriterCodeInputer(Toplevel):
         for code in codes.split('\n'):
             self.editor.insert('insert',f'\n|{code.replace("|","%VEB%")}')
         self.editor.insert('insert','|')
+        self.close()
     
     def show(self):
         """
