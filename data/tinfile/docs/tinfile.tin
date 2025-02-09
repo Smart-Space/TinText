@@ -1,0 +1,11 @@
+<t>嵌入TinML文件
+
+<t><tinfile>name|[mode];
+|2|
+
+<p>*name: |文件名称，包括后缀名
+<p>*mode: |默认为|#append|，在现有内容后追加指定TinML文件中的文本段；|#inner|，将指定TinML文件中的内容使用一个内嵌TinText解释渲染，并追加到现有内容
+
+<p>
+<p>文件查找目录在|#./data/tinfile/user/|下。
+<p>本应用|*_转html功能|中，|#mode|不影响最终转换样式。

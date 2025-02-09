@@ -1,0 +1,22 @@
+<!--TinUIXml编辑-->
+<tinui>
+<line pady='15'>
+<line>
+    <paragraph text='TinML文件夹，用于存放&lt;tinfile&gt;用到的本地TinML文件'></paragraph>
+</line>
+<line>
+    <line>
+        <paragraph text='正在统计./data/tinfile/user/信息'>sign</paragraph>
+    </line>
+    <line>
+        <waitbar3>wb</waitbar3>
+    </line>
+</line>
+</line>
+<line x='250' y='450' lineanchor='s'>
+    <button2 text='打开文件' command='self.funcs["open_file"]'></button2>
+    <button2 text='删除文件' command='self.funcs["delete_file"]'></button2>
+    <button2 text='加入新TinML文件到文件根目录' command='self.funcs["add_file"]'></button2>
+    <button2 text='刷新' command='self.funcs["refresh"]'></button2>
+</line>
+</tinui>

@@ -4,18 +4,24 @@ TinText更新内容
 - [TinEngine]外延涉及到TinText软件的全部更新
 - [TinText软件]包含内容的大部分更新
 
-==========1.x==========
+==========1.6==========
 2025-
-*1. 新增<tinfile>标签，支持内嵌、载入tin源文件
+1. 新增<tinfile>标签，支持内嵌、载入tin源文件
+    暂不支持线上，暂只支持*.tin文件
 *2. 生成的HTML开头添加按钮，生成pdf
-*3. 图片、tin、tinp文件额外支持在源文件所处目录中查找
-*4. TinWriter支持快捷键"<>"
+3. 添加图片、TinML资源管理器，支持从外部导入图片、TinML文件
+    暂不支持线上文件导入
+4. TinWriter支持快捷键"alt+.": "<>"
 5. 改进TinReader对<note>标签的渲染
 6. 表格、html、代码插入后会关闭窗口
 7. html、代码便捷输入框添加清空按钮
 8. [API]TinEngine.TinText子线程渲染时支持渲染队列
-*9. [API]TinEngine.TinText支持从文件渲染，仅限*.tin文件
+9. [API]TinEngine.TinText支持从文件渲染，仅限*.tin文件
 10. 改进<p>行内代码的对比色
+11. 对.data/tinfile/user目录下超过两个月的文件会被清除
+12. <img>添加对不存在的图片的提示
+*13. TinMaker支持打包*.tin文件，也会加密为*.tinp文件
+*14. TinText功能窗口在第一次使用时才激活
 
 ==========1.5==========
 2025-1-29

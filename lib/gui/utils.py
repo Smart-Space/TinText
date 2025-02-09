@@ -5,8 +5,10 @@ TinText界面功能中的杂项功能
 from tkinter import CallWrapper, Text, Toplevel
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 # import ctypes
 import os
+import shutil
 from threading import Thread
 from time import sleep
 import webbrowser
@@ -355,7 +357,7 @@ class AboutWindow(Toplevel):
         """
         初始化，创建关于窗口
         """
-        super().__init__()
+        super().__init__(bg='#f3f3f3')
         self.title(f'关于 TinText v{version} 应用组')
         self.withdraw()
         self.iconbitmap('./logo.ico')
@@ -366,7 +368,7 @@ class AboutWindow(Toplevel):
         self.geometry(f"500x500+{center_x}+{center_y}")
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.close)
-        self.tinui=BasicTinUI(self)
+        self.tinui=BasicTinUI(self, bg='#f3f3f3')
         self.tinui.pack(expand=True,fill='both')
         self.tinuixml=TinUIXml(self.tinui)
         with open('./pages/about.xml','r',encoding='utf-8') as f:
@@ -559,6 +561,238 @@ class WriterTabInputer(Toplevel):
         self.close()
 
 
+class WriterResourceManager(Toplevel):
+    # TinWriter的资源管理器
+    # - ./data/imgs/
+    # - ./data/tinfile/user/
+    def __init__(self, editor):
+        super().__init__()
+        self.title('文件资源管理器')
+        self.withdraw()
+        self.iconbitmap('./logo.ico')
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        center_x = int(screen_width / 2 - 500 / 2)
+        center_y = int(screen_height / 2 - 500 / 2) - 50
+        self.geometry(f"500x500+{center_x}+{center_y}")
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.close)
+
+        self.tinui = BasicTinUI(self, bg='#f3f3f3')
+        self.tinui.pack(expand=True, fill='x', anchor='n')
+        self.tinuixml = TinUIXml(self.tinui)
+        self.tinuixml.funcs['change_view'] = self.change_view
+        self.tinuixml.datas['open_filepath_menu'] = (
+            ('图片文件夹', self.__open_img_folder),
+            ('TinML文件夹', self.__open_tinfile_folder),
+        )
+        with open('./pages/writer-resourcemanager.xml', 'r', encoding='utf-8') as f:
+            xml = f.read()
+            self.tinuixml.loadxml(xml)
+        bbox = self.tinui.bbox('all')
+        self.tinui.config(height=bbox[3]-bbox[1]+5)
+        
+        self.imgui = BasicTinUI(self, bg='#f3f3f3', height=500-bbox[3]-5)
+        self.imguixml = TinUIXml(self.imgui)
+        self.imguixml.funcs.update({
+            'open_file':self.img_open_file,
+            'delete_file':self.img_delete_file,
+            'add_file':self.img_add_file,
+            'refresh':self.__refresh_imgui,
+        })
+        with open('./pages/writer-resource-imgui.xml', 'r', encoding='utf-8') as f:
+            xml = f.read()
+            self.imguixml.loadxml(xml)
+        self.imgsign = self.imguixml.tags['sign']
+        self.imgwb = self.imguixml.tags['wb']
+        self.imgtreeview = None
+
+        self.img_files = None
+        self.img_selected = None
+
+        self.tfui = BasicTinUI(self, bg='#f3f3f3', height=500-bbox[3]-5)
+        self.tfuixml = TinUIXml(self.tfui)
+        self.tfuixml.funcs.update({
+            'open_file':self.tin_open_file,
+            'delete_file':self.tin_delete_file,
+            'add_file':self.tin_add_file,
+            'refresh':self.__refresh_tfui,
+        })
+        with open('./pages/writer-resource-tfui.xml', 'r', encoding='utf-8') as f:
+            xml = f.read()
+            self.tfuixml.loadxml(xml)
+        self.tfsign = self.tfuixml.tags['sign']
+        self.tfwb = self.tfuixml.tags['wb']
+        self.tftreeview = None
+
+        self.tf_files = None
+        self.tf_selected = None
+
+        self.change_view('image')
+        self.__refresh_imgui()
+        self.__refresh_tfui()
+    
+    def change_view(self, tag):
+        if tag == 'image':
+            self.__show_imgui()
+        elif tag == 'tinfile':
+            self.__show_tfui()
+    
+    #main ui:
+    #480x360 treeview (5,40)
+    #(5,405) buttons
+    
+    def __show_imgui(self):
+        # 显示图片资源管理器
+        self.tfui.pack_forget()
+        self.imgui.pack(fill='both', expand=True, anchor='n')
+    
+    def __show_tfui(self):
+        # 显示文档资源管理器
+        self.imgui.pack_forget()
+        self.tfui.pack(fill='both', expand=True, anchor='n')
+    
+    def __get_all_files(self, path):
+        # 获取目录下所有文件
+        files = []
+        for file in os.listdir(path):
+            if os.path.isfile(os.path.join(path, file)):
+                files.append(file)
+            elif os.path.isdir(os.path.join(path, file)):
+                child = self.__get_all_files(os.path.join(path, file))
+                if len(child) > 0:
+                    # 只在目录下有文件才显示
+                    files.append((file, child))
+        return files
+    
+    def __refresh_imgui(self, e=None):
+        # 刷新图片资源管理器
+        self.img_files = None
+        self.img_selected = None
+
+        if self.imgtreeview != None:
+            self.imgui.delete(self.imgtreeview[-1])
+        if self.imgwb == None:
+            self.imgsign = self.imgui.add_paragraph((5, 40), text='正在统计./data/imgs/信息')
+            self.imgwb = self.imgui.add_waitbar3((5, 80))
+        
+        self.img_files = self.__get_all_files('./data/imgs')
+
+        self.imgui.delete(self.imgsign)
+        self.imgsign = None
+        self.imgwb[2]()# stop waitbar
+        self.imgui.delete(self.imgwb[-1])
+        self.imgwb = None
+
+        if len(self.img_files) == 0:
+            # 处理空情况
+            self.imgui.add_paragraph((5, 40), text='./data/imgs/文件夹为空')
+            return
+
+        self.imgtreeview = self.imgui.add_treeview((5,40), width=480, height=350, content=self.img_files, command=self.__image_callback)
+    
+    def __refresh_tfui(self, e=None):
+        # 刷新文档资源管理器
+        self.tf_files = None
+        self.tf_selected = None
+
+        if self.tftreeview != None:
+            self.tfui.delete(self.tftreeview[-1])
+        if self.tfwb == None:
+            self.tfsign = self.tfui.add_paragraph((5, 40), text='正在统计./data/tinfile/user/信息')
+            self.tfwb = self.tfui.add_waitbar3((5, 80))
+        
+        self.tf_files = self.__get_all_files('./data/tinfile/user')
+
+        self.tfui.delete(self.tfsign)
+        self.tfsign = None
+        self.tfwb[2]()# stop waitbar
+        self.tfui.delete(self.tfwb[-1])
+        self.tfwb = None
+
+        if len(self.tf_files) == 0:
+            # 处理空情况
+            self.tfui.add_paragraph((5, 40), text='./data/tinfile/user/文件夹为空')
+            return
+
+        self.tftreeview = self.tfui.add_treeview((5,40), width=480, height=350, content=self.tf_files, command=self.__tinfile_callback)
+    
+    def __image_callback(self, cid):
+        # 图片资源管理器回调函数
+        img = []
+        for id in cid:
+            img.append(self.imgtreeview[-2].itemcget(self.imgtreeview[0][id][0], 'text'))
+        self.img_selected = './data/imgs/' + '/'.join(img)
+    
+    def img_open_file(self, e):
+        # 打开图片文件
+        if self.img_selected!= None and os.path.isfile(self.img_selected):
+            # os.system(f'explorer /select,"{imgfile}"')
+            realfile = os.path.realpath(self.img_selected)
+            os.startfile(realfile)
+        
+    def img_delete_file(self, e):
+        # 删除图片文件
+        if self.img_selected!= None and os.path.isfile(self.img_selected):
+            realfile = os.path.realpath(self.img_selected)
+            os.remove(realfile)
+            self.__refresh_imgui()
+    
+    def img_add_file(self, e):
+        # 上传图片文件
+        filetypes = [('图片文件', '*.jpg;*.png;*.gif;*.jpeg;*.bmp;*.gif'), ('所有文件', '*')]
+        imgfile = filedialog.askopenfilename(title='选择图片文件', filetypes=filetypes, initialdir=os.path.join(os.getcwd(),'data','imgs'))
+        if imgfile:
+            shutil.copy(imgfile, os.path.join(os.getcwd(),'data','imgs'))
+            self.__refresh_imgui()
+    
+    def __tinfile_callback(self, cid):
+        # 文档资源管理器回调函数
+        tin = []
+        for id in cid:
+            tin.append(self.tftreeview[-2].itemcget(self.tftreeview[0][id][0], 'text'))
+        self.tf_selected = './data/tinfile/user/' + '/'.join(tin)
+
+    def tin_open_file(self, e):
+        # 打开TinML文件
+        if self.tf_selected!= None and os.path.isfile(self.tf_selected):
+            # os.system(f'explorer /select,"{tinfile}"')
+            realfile = os.path.realpath(self.tf_selected)
+            # os.startfile(realfile)
+            # 这个方法仅限于windows系统，考虑到本应用当前用途，不做多平台处理
+            # （可以做，但是现在没必要）
+            os.system(f'explorer /select,"{realfile}"')
+        
+    def tin_delete_file(self, e):
+        # 删除TinML文件
+        if self.tf_selected!= None and os.path.isfile(self.tf_selected):
+            realfile = os.path.realpath(self.tf_selected)
+            os.remove(realfile)
+            self.__refresh_tfui()
+    
+    def tin_add_file(self, e):
+        # 上传TinML文件
+        filetypes = [('TinML文件', '*.tin')]
+        tinfile = filedialog.askopenfilename(title='选择TinML文件', filetypes=filetypes, initialdir=os.path.join(os.getcwd(),'data','tinfile','user'))
+        if tinfile:
+            shutil.copy(tinfile, os.path.join(os.getcwd(),'data','tinfile','user'))
+            self.__refresh_tfui()
+    
+    def __open_img_folder(self, e):
+        # 打开图片文件夹
+        os.startfile(os.path.join(os.getcwd(),'data','imgs'))
+    
+    def __open_tinfile_folder(self, e):
+        # 打开tinfile文件夹
+        os.startfile(os.path.join(os.getcwd(),'data','tinfile','user'))
+    
+    def show(self):
+        self.deiconify()
+    
+    def close(self):
+        self.withdraw()
+
+
 class WriterCodeInputer(Toplevel):
     #TinWriter的代码输入窗口
     def __init__(self,editor):
@@ -648,6 +882,7 @@ class WriterHelper:
         '<sp>':'<sp>','<separate>':'<sp>',
         '<stop>':'<stop>',
         '<tb>':'<tb>', '<table>':'<tb>', '</tb>':'</tb>', '</table>':'</tb>',
+        '<tinfile>':'<tinfile>',
         '<title>':'<title>', '<t>':'<title>',
         '<wait>':'<wait>','<w>':'<wait>',
     }
@@ -686,6 +921,7 @@ class WriterHelper:
     '<table>':'co1|col2|[col3]...',
     '</tb>':'',
     '</table>':'',
+    '<tinfile>':'name|[append|inner]',
     '<title>':'title|[level]',
     '<t>':'title|[level]',
     '<wait>':'content',

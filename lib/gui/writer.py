@@ -4,13 +4,11 @@
 
 设计上作为TinReader的下一级，通过TinReader调用
 """
-from tkinter import Toplevel, StringVar
+from tkinter import Toplevel
 from tkinter.font import Font
-from tkinter.messagebox import askyesno
 from tkinter.filedialog import asksaveasfilename
 import os
 from concurrent.futures import ThreadPoolExecutor
-import time
 
 from tinui import BasicTinUI, TinUIXml, show_info, show_warning, show_question, show_success, show_error
 
@@ -155,6 +153,15 @@ def toggle_comment(e):
             if char=='|-':#如果当前字符是|-，则删除
                 editor.delete(f'{i}.0', f'{i}.0 +2c')
 
+# 添加标签<>
+def add_tag_sign(e):
+    index = editor.index('insert')
+    if index.split('.')[1] == '0':
+        editor.insert('insert', '<>')
+        editor.mark_set('insert', f'{index}+1c')
+    else:
+        pass
+
 
 def open_textfinder(e):
     #打开文本查找器
@@ -171,6 +178,12 @@ def open_tabinputer(e):
 def open_codeinputer(e):
     #打开代码输入器
     codeinputer.show()
+def open_resourcemanager(e):
+    # 打开资源管理器
+    # include:
+    # - ./data/imgs/
+    # - ./data/tinfile/user/
+    resourcemanager.show()
 
 
 def on_text_change(e):
@@ -301,45 +314,7 @@ def highlight(all=False,startpos='insert-30l linestart',endpos='insert+30l linee
             tagend=None
         else:
             s=f"{pos}+1c"
-        # if not s: s=f"{pos}+1c"
-    #标签
-    # s=f"{__get_index_line(start)}.0"
-    # while True:
-    #     start_pos=editor.search('[ ]{0,}<', s, end, regexp=True)
-    #     if not start_pos:
-    #         break
-    #     if editor.get(f'{start_pos} linestart', f'{start_pos} linestart +1c')=='|-':
-    #         #开头注释，跳过
-    #         s=f"{start_pos}+1l linestart"
-    #         continue
-    #     s=f"{start_pos}+1c"
-    #     end_pos=editor.search('>', s, end, regexp=True)
-    #     if not end_pos:
-    #         #标签未闭合只跳过，不终止
-    #         pass
-    #     elif editor.get(f"{start_pos} linestart")=='|':
-    #         #多行模式
-    #         s=f"{end_pos}+1l linestart"
-    #         continue
-    #     else:
-    #         editor.tag_add('tag', start_pos)
-    #         editor.tag_add('tag', end_pos)
-    #         editor.tag_add('tag_name', f"{start_pos}+1c", end_pos)
-    #     s=f"{start_pos}+1l linestart"
-    #注释
-    #现已放置在第一个循环中，通过检测 | 触发，尽量减少循环次数
-    # s=f"{__get_index_line(start)}.0"
-    # while True:
-    #     pos=editor.search('[ ]{0,}(\|-).*', s, end, regexp=True)
-    #     if not pos:
-    #         break
-    #     if __get_index_char(pos)!='0':
-    #         s=f"{pos}+1c"
-    #         continue
-    #     comment_s=f"{pos} linestart"
-    #     comment_e=f"{pos} lineend"
-    #     editor.tag_add('comment', comment_s, comment_e)
-    #     s=f"{pos}+1l linestart"
+    #处理标签
     editor.tag_raise('tag')
     editor.tag_raise('tag_name')
     editor.tag_raise('comment')
@@ -375,7 +350,7 @@ def __start():
     #加载窗口
     global root, editor, tintext, peert, already,\
          textfinder, writerhelper, writerhtmlinputer,\
-         tabinputer, codeinputer,\
+         tabinputer, codeinputer, resourcemanager,\
          highlighttask, highlightthreads
 
     already=True
@@ -398,7 +373,7 @@ def __start():
     tinuix.datas['appbar']=(
         ('','\uE74E',save_file),('渲染','\uE8A1',reopenfunc),('另存为','\uE792',saveas_file),
         '',('搜索','\uE721',open_textfinder),('替换','\uE8EE',open_textfinder_replace),
-        '',('HTML','\uF57E',open_htmlinputer),('表格','\uF0E2',open_tabinputer),('代码','\uE943',open_codeinputer),
+        '',('HTML','\uF57E',open_htmlinputer),('表格','\uF0E2',open_tabinputer),('代码','\uE943',open_codeinputer),('文件资源','\uECCD',open_resourcemanager),
         '',('','\uE7A7',editor_undo),('','\uE7A6',editor_redo),
     )
     tinuix.loadxml(open('pages/writer.xml',encoding='utf-8').read())
@@ -415,6 +390,7 @@ def __start():
     editor.bind('<MouseWheel>', peer_synchronize)
     editor.bind('<Alt-;>',lambda e: editor.insert('insert',';'))
     editor.bind('<Alt-/>',toggle_comment)
+    editor.bind('<Alt-.>', add_tag_sign)
     # editor.bind('<FocusIn>', on_focus)
     # editor.bind('<FocusOut>', out_focus)
     # editor.bind('<KeyRelease>',on_text_change)
@@ -469,10 +445,11 @@ def __start():
     #获取配置信息
     searchmode=process.config('get_item','general','WriterSearchMode')
 
-    textfinder=utils.TextFinder('TinWriter搜索',editor,searchmode,'WriterSearchMode')
-    writerhtmlinputer=utils.WriterHtmlInputer(editor)
-    tabinputer=utils.WriterTabInputer(editor)
-    codeinputer=utils.WriterCodeInputer(editor)
+    textfinder = utils.TextFinder('TinWriter搜索',editor,searchmode,'WriterSearchMode')
+    writerhtmlinputer = utils.WriterHtmlInputer(editor)
+    tabinputer = utils.WriterTabInputer(editor)
+    codeinputer = utils.WriterCodeInputer(editor)
+    resourcemanager = utils.WriterResourceManager(editor)
 
     root.focus_set()
     highlightthreads = ThreadPoolExecutor(2)

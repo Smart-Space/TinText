@@ -1,0 +1,9 @@
+<!--TinUIXml编辑-->
+<tinui>
+<line>
+    <pivot content="(('图片','image'), ('TinML文件','tinfile'))" command='self.funcs["change_view"]'></pivot>
+</line>
+<line x='495' y='22' anchor='e'>
+    <menubutton text='打开文件夹位置' cont="self.datas['open_filepath_menu']"></menubutton>
+</line>
+</tinui>

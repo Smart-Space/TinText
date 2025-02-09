@@ -289,6 +289,9 @@ class TinTranslator():
                     tabsview.add(tab)
                 self.page_group_name += 1
                 _body.add(tabsview)
+            elif tag == '<tinfile>':
+                # 已添加到TinML解释列表中，无需再处理
+                pass
         return doc
     
     # def __tinP_to_markdown(self,texts):

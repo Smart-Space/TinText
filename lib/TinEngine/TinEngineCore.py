@@ -117,19 +117,27 @@ class TinText(ScrolledText):
         super().__init__(master, *args, **kw)
         self.config(borderwidth=0, relief="flat", insertbackground='#000000', insertborderwidth=1,
             wrap='char', spacing1=5, spacing3=5)
+        
+        # resource path, no work now. working...
+        self.imagepth = './data/imgs/'
+        self.tinfpth = './data/tinfile/user/'
+
         self.tinml=TinML()#tin标记记录
         self.tinparser=TinParser()#解析器
+
         self.render_queue = list()#渲染队列
         self.balloon=Balloon()#提示框
         self.img_thread_pool=ThreadPoolExecutor(max_workers=10)#图片下载线程池
         self.render_thread=None#渲染线程
         self.render_flag=threading.Event()#渲染线程标志
         self.render_flag.set()
+
         self.bind('<<StopRender>>', lambda e:self.pause_thread_render())
         self.bind('<<ResumeRender>>', lambda e:self.resume_thread_render())
         self.bind('<<CompleteRender>>', lambda e:self.complete_thread_render())
-        # # 绑定窗口销毁
-        # self.bind('<Destroy>', lambda e:self.destroy_event())
+        # 绑定窗口销毁
+        self.bind('<Destroy>', lambda e:self.destroy_event())
+
         self.__initialize()
 
     def __initialize(self):
@@ -211,6 +219,8 @@ class TinText(ScrolledText):
         self.PAGES_TAG=False#是否在标签页面内
         self.pages :list[TinText] =[]#当前页面TinText列表
         self.page_content=[]#当前页面内容
+        # 嵌入TinML文件
+        self.tinfile_allowable_type = ('tin',)
     
     def __yview_scroll(self,event):# 用于子控件绑定纵向滚动事件
         self.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -327,20 +337,25 @@ class TinText(ScrolledText):
     def __render_image(self,mark,img_file,need_download=True,url='',img_size=None):
         #图片
         #发生错误则返回错误提示文本
+        img_file = f'./data/imgs/{img_file}'
         if need_download:
             try:
                 res=requests.get(url)
             except Exception as err:
-                # print(err)
                 return str(err)
             if img_file=='':#空名，直接获取二进制数据
                 img=Image.open(io.BytesIO(res.content))
             else:#存在文件（包括后缀），保存到本地
-                with open('./data/imgs/'+img_file,'wb') as f:
+                with open(img_file,'wb') as f:
                     f.write(res.content)
-                img=Image.open('./data/imgs/'+img_file)
+                img=Image.open(img_file)
         else:
-            img=Image.open('./data/imgs/'+img_file)
+            if not os.path.exists(img_file):
+                # 文件不存在，返回错误提示
+                self.images[mark] = None
+                self.insert(mark, f'{img_file} not found.', 'error')
+                return False
+            img=Image.open(img_file)
         if img_size:
             #缩放图片
             try:
@@ -487,8 +502,32 @@ class TinText(ScrolledText):
             wrap='char')
             tintext.pack(fill='both',expand=True)
             self.pages.append(tintext)
+    
+    def __render_tinfile(self, filepath, mode):
+        # 渲染tin文件
+        with open(filepath, 'r', encoding='utf-8') as f:
+            tintext = f.read()
+        if mode == 'append':
+            self.render(tintext, new=False, need_disable=False)
+        else:
+            self.update()
+            width = self.winfo_width()
+            height = self.winfo_height()
+            frame = tk.Canvas(self, width=width, height=height*2/5, highlightthickness=0, relief='flat', background=self.cget('background'))
+            newTinText = TinText(frame, font=self.cget('font'))
+            newTinText.place(x=0, y=0, width=width, height=height*2/5)
+            self.window_create('end', window=frame, padx=1, align='center')
+            newTinText.render(tintext, new=True, need_disable=True)
+            newTinText.mark_set('insert', 'end')
+            bbox = newTinText.bbox('insert')
+            frame.config(height=bbox[1]+bbox[3])
+            newTinText.place_configure(height=bbox[1]+bbox[3])
+            self.widgets.append(frame)
+            newTinText.vbar.pack_forget()
+            newTinText.bind('<MouseWheel>', self.__yview_scroll)
+            return newTinText
 
-    def render(self, tintext='<tin>TinText', new=True, is_thread_tag=False):
+    def render(self, tintext='<tin>TinText', new=True, is_thread_tag=False, need_disable=True):
         #渲染tin标记
         # new::是否为新的渲染任务
         # is_thread_tag::是否在新线程中渲染（仅作为标志，不具有子线程渲染功能）
@@ -967,6 +1006,56 @@ class TinText(ScrolledText):
                     self.PAGES_TAG=False
                     self.pages.clear()
                     self.page_content.clear()
+                case '<tinfile>':
+                    # <tinfile>file-path|[mode:append|inner]
+                    # 引入另一个tin标记文件
+                    # mode:append|inner，默认为append
+                    # append模式，将会在当前文件中渲染，并在末尾添加换行符
+                    # inner模式，将会在添加一个TinText，在其中渲染
+                    # 可以使用https|http开头，以sha形式存放在tinfile中
+                    if unit_length > 4:
+                        err = f'[{unit[0]}]<tinfile>标记参数超出限制:\n{unit[1]+"|".join(unit[2:])}\n<tinfile>文件路径|[模式:append|inner]'
+                        self.__render_err(err)
+                        break
+                    filepath = unit[2]
+                    if filepath.startswith('http') or filepath.startswith('https'):
+                        # 远程文件
+                        # 先下载文件
+                        # sha256 = hashlib.sha256(filepath.encode('utf-8')).hexdigest()
+                        # filepath = f'./data/tinfile/user/{sha256}.tin'
+                        ...
+                    else:
+                        # 本地文件
+                        # 判断后缀名是否符合要求
+                        if filepath.split('.')[-1] not in self.tinfile_allowable_type:
+                            err = f'[{unit[0]}]<tinfile>文件类型错误：\n{filepath}\n文件类型不支持'
+                            self.__render_err(err)
+                            break
+                        # 判断文件是否存在
+                        filepath = f'./data/tinfile/user/{filepath}'
+                        if not os.path.exists(filepath):
+                            err = f'[{unit[0]}]<tinfile>文件不存在：\n{filepath}'
+                            self.__render_err(err)
+                            break
+                    if unit_length == 4:
+                        mode = unit[3]
+                        if mode not in ('append', 'inner'):
+                            err = f'[{unit[0]}]<tinfile>模式错误：\n{unit[3]}\n模式只能为append或inner'
+                            self.__render_err(err)
+                            break
+                    else:
+                        mode = 'append'
+                    if mode == 'append':
+                        # 会继续载入tinml
+                        self.__render_tinfile(filepath, mode)
+                    else:
+                        # 需要从子TinText获取tinml结果
+                        newTinText = self.__render_tinfile(filepath, mode)
+                        self.insert('end', '\n')
+                        # 考虑到inner模式下，在TinText的中的渲染确实是使用了子TinText的渲染结果，因此这里直接使用子TinText的全新环境
+                        # 但是最终呈现的结果与append模式一样，因此，作为转为html的工具
+                        # self.tinml只需要获得子TinText的tinml即可
+                        self.tinml.extend(newTinText.tinml)
                 case _:
                     err=f"[{unit[0]}]错误标记：{unit[1]}"
                     self.__render_err(err)
@@ -976,7 +1065,8 @@ class TinText(ScrolledText):
                 self.see('end')
         wait(img_threadings,return_when=ALL_COMPLETED)
         img_threadings.clear()
-        self.config(state='disabled')
+        if need_disable:
+            self.config(state='disabled')
         self.RENDERING=False
         print(self.tinml)
         if is_thread_tag:
@@ -1021,8 +1111,8 @@ class TinText(ScrolledText):
             self.render_thread = threading.Thread(target=self.render, args=(next_tintext,False,True))
             self.render_thread.start()
     
-    # def destroy_event(self):
-    #     # 销毁事件
-    #     # 如果存在子线程渲染，则等待子线程结束
-    #     if self.render_thread.is_alive():
-    #         self.render_thread.join()
+    def destroy_event(self):
+        # 销毁事件
+        # 如果存在子线程渲染，则等待子线程结束
+        if self.render_thread.is_alive():
+            self.render_thread.join()

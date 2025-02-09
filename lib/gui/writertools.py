@@ -91,6 +91,9 @@ def load_sc(scx):
 <line>
     <paragraph text='注释&#x0009;alt+/'></paragraph>
 </line>
+<line>
+    <paragraph text='标签符号&#x0009;alt+.'></paragraph>
+</line>
 </tinui>'''
     scx.loadxml(xml)
 

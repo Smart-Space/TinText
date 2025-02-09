@@ -143,7 +143,7 @@ class TinTextTable(TinUI):
     #TinText的表格控件
     def __init__(self,master,width,bg='#fbfbfb',data=None,font=('微软雅黑',12)):
         super().__init__(master,update=False,width=width,bg=bg)
-        table=self.add_table((2,2),data=data,font=font)
+        self.add_table((2,2),data=data,font=font)
         bbox=list(self.bbox('all'))
         height=bbox[3]-bbox[1]+4
         bbox[2]+=2#宽度右侧留白
