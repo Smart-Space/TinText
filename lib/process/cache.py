@@ -11,7 +11,10 @@ imgs_cache_cleanday = 60 #缓存清理周期(day)
 imgs_cache_clean_sec = imgs_cache_cleanday * 86400 #缓存清理周期(秒)
 
 def initial():
-    pass
+    if not os.path.exists('./data/imgs'):
+        os.makedirs('./data/imgs')
+    if not os.path.exists('./data/tinfile/user'):
+        os.makedirs('./data/tinfile/user')
 
 #==========清理缓存==========
 def clean_cache_imgs():

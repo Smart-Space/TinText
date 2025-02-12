@@ -41,8 +41,9 @@ if __name__=='__main__':
         else:#常规启动
             gui.start_reader(quit)
             
-        #启动后操作
-        process.cache('clean','imgs')#清理图片缓存
+        # 启动后操作
+        process.cache('clean','imgs')# 清理图片缓存
+        process.cache('clean','tinfile')# 清理文件缓存
 
     root=tk.Tk()
     root.withdraw()

@@ -65,6 +65,7 @@ class TinxMakeEngine:
     TINX-include-file:
     {tinfile}.tin -> {tinfile}.tinp
     data/imgs/* -> imgs/* [needed from <img>]
+    data/tinfile/user/* -> tinfile/* [needed from <tinfile>]
     ...
 
     [in] tinfile, key
@@ -72,9 +73,10 @@ class TinxMakeEngine:
     """
 
     def __init__(self,tinfile,log):
-        self.tinfile=tinfile
-        self.log=log
-        self.img_re=re.compile('^[ ]{0,}(<img>|<image>)(.*)$',re.M)
+        self.tinfile = tinfile
+        self.log = log
+        self.img_re = re.compile('^[ ]{0,}(<img>|<image>)(.*)$',re.M)
+        self.tinfile_re = re.compile('^[ ]{0,}(<tinfile>)(.*)$',re.M)
     
     def encrypt(self, key:str):
         #加密
@@ -91,11 +93,13 @@ class TinxMakeEngine:
         tinp_text_b=tinp_text.encode('utf-8','surrogatepass')
         zipf.writestr('main.tinp', tinp_text_b)
         self.log('TINP文件已生成')
+
         #data/imgs* -> imgs/*
         self.log('开始处理图片……')
         imgpath='./data/imgs/'
         img_tags=self.img_re.findall(text)
         for tag in img_tags:
+            self.log('处理图片：'+tag[1])
             imgname=tag[1].split('|')[0]
             if imgname=='':#文件名为空
                 continue
@@ -106,6 +110,31 @@ class TinxMakeEngine:
             else:
                 zipf.write(imgfile, 'imgs/'+imgname)
         self.log('图片已打包')
+
+        # data/tinfile/user/* -> tinfile/*
+        # 为了保持一贯性和向后兼容性，后缀名不会更改
+        self.log('开始处理内嵌TinML文件……')
+        tinfilepath = './data/tinfile/user/'
+        tin_tags = self.tinfile_re.findall(text)
+        for tag in tin_tags:
+            self.log('处理内嵌TinML文件：'+tag[1])
+            tinname = tag[1].split('|')[0]
+            if tinname == '':#文件名为空
+                continue
+            tinfile = tinfilepath + tinname
+            if not os.path.exists(tinfile):
+                #若不存在内嵌文件，只是提醒，不会报错
+                self.log('内嵌文件不存在：'+tinname)
+            else:
+                if tinfile.endswith('.tin'):
+                    with open(tinfile, 'r', encoding='utf-8') as f:
+                        tincontent = f.read() + '\n'
+                    tinp = TinpMakeEngine(tincontent)
+                    tinp_content = tinp.encrypt(key)
+                    tinp_content_b = tinp_content.encode('utf-8','surrogatepass')
+                    zipf.writestr('tinfile/'+tinname, tinp_content_b)
+        self.log('内嵌文件已打包')
+
         #... other file types (future)
         #all -> zip
         zipf.close()
@@ -119,13 +148,28 @@ class TinxMakeEngine:
         tinptext=zipf.read('main.tinp').decode('utf-8','surrogatepass')
         tinp=TinpMakeEngine(tinptext)
         text=tinp.decrypt(key)
-        #imgs/* -> data/imgs*
-        imgpath='./data/imgs/'
+
+        imgpath = './data/imgs/'
+        tinfilepath = './data/tinfile/user/'
         for file in zipf.namelist():
+
+            # imgs/* -> data/imgs*
             if file.startswith('imgs/'):
                 img_name=file[5:]
                 img_data=zipf.read(file)
                 with open(imgpath+img_name, 'wb') as f:
                     f.write(img_data)
+            
+            # tinfile/* -> data/tinfile/user/*
+            elif file.startswith('tinfile/'):
+                tin_name = file[8:]
+                if tin_name.endswith('.tin'):
+                    tin_data_b = zipf.read(file)
+                    tin_data = tin_data_b.decode('utf-8','surrogatepass')
+                    tinp = TinpMakeEngine(tin_data)
+                    tin_data_t = tinp.decrypt(key)
+                    with open(tinfilepath+tin_name, 'w', encoding='utf-8', errors='surrogatepass') as f:
+                        f.write(tin_data_t)
+
         #... other file types (future)
         return text

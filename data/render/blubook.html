@@ -313,7 +313,12 @@ margin: auto;
 [type=radio]:checked ~ label ~ .tabcontent {
   z-index: 1;
 }
-</style>
+
+@media print{
+  div{
+    width: 100%;
+  }
+}</style>
     <style>pre { line-height: 125%; font-family: "Consolas";}
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
 span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -397,7 +402,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <p>
         <a href="https://github.com/">GitHub</a>
       </p>
-      <p>&lt;lnk&gt;会自带换行，若不想要换行，可使用
+      <p>
+        <code>&lt;lnk&gt;</code>会自带换行，若不想要换行，可使用
         <code>&lt;p&gt;</code>的!开头标记: <i>
           <b>
             <a href="www.baidu.com">www.baidu.com</a>
@@ -499,6 +505,13 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
 </pre></div>
 
+      <p>上面的代码在TinML编写为：</p><div class="highlight"><pre><span></span><span class="k">&lt;</span><span class="nt">code</span><span class="k">&gt;</span><span class="s">python</span><span class="k">;</span>
+<span class="k">|</span><span class="s">from tkinter import *</span>
+<span class="k">|</span>
+<span class="k">|</span><span class="s">root=Tk()</span>
+<span class="k">|</span><span class="s">root.mainloop()</span><span class="k">|</span>
+</pre></div>
+
       <p><br></p>
       <p>使用
         <code>&lt;pages&gt;</code>及组合标签，能够插入标签页，呈现多页TinML内容。
@@ -529,14 +542,14 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
         </div>
       </div>
       <p><br></p>
-      <p>this paragraph is added to the main TinText Widget by 
-        <code>&lt;tinfile&gt;</code>tag.
+      <p>这一段使用
+        <code>&lt;tinfile&gt;</code>生成。
       </p>
-      <p>this paragraph is added to the main TinText Widget by 
-        <code>&lt;tinfile&gt;</code>tag.
+      <p>这一段使用
+        <code>&lt;tinfile&gt;</code>生成。
       </p>
-      <p>this paragraph is added to the main TinText Widget by 
-        <code>&lt;tinfile&gt;</code>tag.
+      <p>这一段使用
+        <code>&lt;tinfile&gt;</code>生成。
       </p>
       <p><br></p>
       <p>返回顶部⏫

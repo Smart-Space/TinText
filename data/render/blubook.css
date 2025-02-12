@@ -308,3 +308,9 @@ margin: auto;
 [type=radio]:checked ~ label ~ .tabcontent {
   z-index: 1;
 }
+
+@media print{
+  div{
+    width: 100%;
+  }
+}
