@@ -493,14 +493,14 @@ class TinText(ScrolledText):
         #标签页面
         self.update()
         page=TinTextPage(self,names)
-        self.widgets.append(page)
         self.window_create('end',window=page,padx=1,align='center')
+        self.widgets.append(page)
         for name in names:
             ui=page.page(name)
             tintext=TinText(ui,font=self.cget('font'))
+            tintext.pack(fill='both',expand=True)
             tintext.config(borderwidth=0, relief="flat", insertbackground='#000000', insertborderwidth=1,
             wrap='char')
-            tintext.pack(fill='both',expand=True)
             self.pages.append(tintext)
     
     def __render_tinfile(self, filepath, mode):
@@ -999,7 +999,9 @@ class TinText(ScrolledText):
                     self.pages[page_num].thread_render(page_tin,True)
                     self.page_content.clear()
                     #<pages>的结束标签
-                    pages=self.pages.copy()
+                    pages = list()
+                    for page in self.pages:
+                        pages.append(page.tinml)
                     self.tinml.addtin('<pages>',pages=pages,names=page_names)
                     del page_num
                     del page_names

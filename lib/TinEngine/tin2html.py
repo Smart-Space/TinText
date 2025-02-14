@@ -280,7 +280,7 @@ class TinTranslator():
                         tab.add(input_(type='radio',id=f'tag-{self.page_id}',name=f'tab-group-{self.page_group_name}'))
                     self.page_id += 1
                     tab.add(label(names[i],_for=f'tag-{i}'))
-                    tinml=pages[i].tinml
+                    tinml=pages[i]
                     translator=TinTranslator(tinml)
                     tabcontentdiv=translator.tohtml(code_style=False).body[-1]
                     with tabcontentdiv:

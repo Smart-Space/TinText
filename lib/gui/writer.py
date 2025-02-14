@@ -377,10 +377,10 @@ def __start():
         '',('','\uE7A7',editor_undo),('','\uE7A6',editor_redo),
     )
     tinuix.loadxml(open('pages/writer.xml',encoding='utf-8').read())
-    editor_buttons=tinuix.tags['buttons']
+    tinuix.tags['buttons']# editor_buttons
 
     editor=utils.ScrolledText(root, borderwidth=0, relief='flat', font='Consolas 13',
-        insertbackground='#000000', insertborderwidth=1, wrap='char', spacing1=3,
+        insertbackground='#000000', insertborderwidth=1, wrap='char', spacing1=2,spacing3=2,
         undo=True)
     editor.place(x=0, y=40, width=750, height=690)
     editor_font = Font(font=editor['font'])

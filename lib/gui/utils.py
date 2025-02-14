@@ -246,7 +246,7 @@ class TextFinder(Toplevel):
         显示窗口
         """
         if replace:#包含替换功能
-            self.geometry('375x125')
+            self.geometry('375x130')
         else:
             self.geometry('375x60')
         self.deiconify()
